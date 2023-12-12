@@ -6,6 +6,9 @@
 #include "sparks/assets/mesh.h"
 #include "sparks/assets/texture.h"
 #include "sparks/assets/util.h"
+#include "sparks/assets/pdf.h"
+#include "sparks/assets/bvh.h"
+#include "sparks/assets/aabb.h"
 #include "vector"
 
 namespace sparks {
@@ -66,6 +69,7 @@ class Scene {
                  float t_max,
                  HitRecord *hit_record) const;
 
+  BVHNode* buildBVH(std::vector<std::pair<Entity*, int>> entities_);
   bool TextureCombo(const char *label, int *current_item) const;
   bool EntityCombo(const char *label, int *current_item) const;
   int LoadTexture(const std::string &file_path);
@@ -76,6 +80,7 @@ class Scene {
   std::vector<std::string> texture_names_;
 
   std::vector<Entity> entities_;
+  BVHTree bvh_tree;
 
   int envmap_id_{1};
   float envmap_offset_{0.0f};

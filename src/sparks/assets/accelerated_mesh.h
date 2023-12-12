@@ -1,6 +1,7 @@
 #pragma once
 #include "sparks/assets/aabb.h"
 #include "sparks/assets/mesh.h"
+#include "sparks/assets/bvh.h"
 
 namespace sparks {
 
@@ -24,6 +25,7 @@ class AcceleratedMesh : public Mesh {
   void BuildAccelerationStructure();
 
  private:
+  AxisAlignedBoundingBox aabb{};
   /*
    * You can add your acceleration structure contents here.
    * */

@@ -6,6 +6,7 @@
 #include "sparks/assets/accelerated_mesh.h"
 #include "sparks/util/util.h"
 
+
 namespace sparks {
 
 Scene::Scene() {
@@ -195,6 +196,13 @@ float Scene::TraceRay(const glm::vec3 &origin,
                       float t_min,
                       float t_max,
                       HitRecord *hit_record) const {
+  float res = bvh_tree.TraceRay(origin, direction, t_min, t_max, hit_record);
+  if (hit_record) {
+    hit_record->geometry_normal = glm::normalize(hit_record->geometry_normal);
+    hit_record->normal = glm::normalize(hit_record->normal);
+    hit_record->tangent = glm::normalize(hit_record->tangent);
+  }
+  return res;
   float result = -1.0f;
   HitRecord local_hit_record;
   float local_result;
@@ -302,6 +310,63 @@ int Scene::LoadObjMesh(const std::string &file_path) {
   }
 }
 
+BVHNode* Scene::buildBVH(std::vector<std::pair<Entity*, int>> entities_list) {
+  BVHNode* node = new BVHNode();
+  AxisAlignedBoundingBox& aabb = node->aabb;
+  for (int i = 0; i < entities_list.size(); i++) {
+    aabb |= entities_list[i].first->GetModel()->GetAABB(glm::mat4{1.0f});
+  }
+  if (entities_list.size() == 1) {
+    node->left = nullptr;
+    node->right = nullptr;
+    node->entity_id = entities_list[0].second;
+    node->entity = entities_list[0].first;
+    return node;
+  }
+  if (entities_list.size() == 2) {
+    node->left = buildBVH(std::vector{entities_list[0]});
+    node->right = buildBVH(std::vector{entities_list[1]});
+    return node;
+  }
+  AxisAlignedBoundingBox centroidBounds = entities_list[0].first->GetModel()->GetAABB(glm::mat4{1.0f}).Center();
+  for (int i = 1; i < entities_list.size(); ++i)
+    centroidBounds |= entities_list[i].first->GetModel()->GetAABB(glm::mat4{1.0f}).Center();
+  int dim = centroidBounds.maxExtent();
+  switch (dim) {
+    case 0:
+      std::sort(entities_list.begin(), entities_list.end(), [](auto f1, auto f2) {
+        return f1.first->GetModel()->GetAABB(glm::mat4{1.0f}).Center().x <
+              f2.first->GetModel()->GetAABB(glm::mat4{1.0f}).Center().x;
+      });
+      break;
+    case 1:
+      std::sort(entities_list.begin(), entities_list.end(), [](auto f1, auto f2) {
+        return f1.first->GetModel()->GetAABB(glm::mat4{1.0f}).Center().y <
+              f2.first->GetModel()->GetAABB(glm::mat4{1.0f}).Center().y;
+      });
+      break;
+    case 2:
+      std::sort(entities_list.begin(), entities_list.end(), [](auto f1, auto f2) {
+        return f1.first->GetModel()->GetAABB(glm::mat4{1.0f}).Center().z <
+              f2.first->GetModel()->GetAABB(glm::mat4{1.0f}).Center().z;
+      });
+      break;
+  }
+  auto left = entities_list.begin();
+  auto mid = left + (entities_list.size() >> 1);
+  auto right = entities_list.end();
+
+  auto left_entities = std::vector<std::pair<Entity*, int>>(left, mid);
+  auto right_entities = std::vector<std::pair<Entity*, int>>(mid, right);
+
+  assert (entities_list.size() == (left_entities.size() + right_entities.size()));
+
+  node->left = buildBVH(left_entities);
+  node->right = buildBVH(right_entities);
+
+  return node;
+}
+
 Scene::Scene(const std::string &filename) : Scene() {
   auto doc = std::make_unique<tinyxml2::XMLDocument>();
   doc->LoadFile(filename.c_str());
@@ -377,6 +442,13 @@ Scene::Scene(const std::string &filename) : Scene() {
     }
   }
 
+  std::vector<std::pair<Entity*, int>> entities_list;
+
+  for (int entity_id = 0; entity_id < entities_.size(); entity_id++) {
+    entities_list.push_back(std::make_pair(&entities_[entity_id], entity_id));
+  }
+
+  bvh_tree = buildBVH(entities_list);
   SetCameraToWorld(camera_to_world);
   UpdateEnvmapConfiguration();
 }

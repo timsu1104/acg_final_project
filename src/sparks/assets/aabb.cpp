@@ -100,4 +100,22 @@ AxisAlignedBoundingBox &AxisAlignedBoundingBox::operator|=(
   return *this;
 }
 
+glm::vec3 AxisAlignedBoundingBox::Center() const {
+  return glm::vec3((x_low + x_high) * 0.5f, (y_low + y_high) * 0.5f, (z_low + z_high) * 0.5f);
+}
+
+glm::vec3 AxisAlignedBoundingBox::Diagonal() const {
+  return glm::vec3(x_high - x_low, y_high - y_low, z_high - z_low);
+}
+
+int AxisAlignedBoundingBox::maxExtent() const {
+  glm::vec3 diag = Diagonal();
+  if (diag.x > diag.y && diag.x > diag.z) {
+    return 0;
+  } else if (diag.y > diag.z) {
+    return 1;
+  }
+  return 2;
+}
+
 }  // namespace sparks

@@ -13,6 +13,13 @@ class PathTracer {
                                     int y,
                                     int sample) const;
 
+  [[nodiscard]] glm::vec3 SampleRayRecursive(glm::vec3 origin,
+                                    glm::vec3 direction,
+                                    int x,
+                                    int y,
+                                    int sample,
+                                    int depth) const;
+
  private:
   const RendererSettings *render_settings_{};
   const Scene *scene_{};
