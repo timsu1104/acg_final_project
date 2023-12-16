@@ -38,6 +38,12 @@ private:
     }
 };
 
+float reflectance(float cosine, float ref_idx) {
+  auto r0 = (1.0f - ref_idx) / (1.0f + ref_idx);
+  r0 = r0 * r0;
+  return r0 + (1 - r0) * glm::pow((1.0f - cosine), 5);
+}
+
 glm::vec3 PathTracer::SampleRay(glm::vec3 origin,
                                 glm::vec3 direction,
                                 int x,
@@ -45,6 +51,7 @@ glm::vec3 PathTracer::SampleRay(glm::vec3 origin,
                                 int sample) const {
   glm::vec3 throughput{1.0f};
   glm::vec3 radiance{0.0f};
+  glm::vec3 l_dir{0.0f};
   HitRecord hit_record;
   const float rate = 0.9;
   const int max_bounce = render_settings_->num_bounces;
@@ -58,7 +65,9 @@ glm::vec3 PathTracer::SampleRay(glm::vec3 origin,
       if (material.material_type == MATERIAL_TYPE_EMISSION) {
         radiance += throughput * material.emission * material.emission_strength;
         break;
-      } else if (material.material_type == MATERIAL_TYPE_LAMBERTIAN) {
+      }
+      
+      if (material.material_type == MATERIAL_TYPE_LAMBERTIAN) {
         origin = hit_record.position;
         glm::vec3 albedo = material.albedo_color;
         glm::vec3 normal = hit_record.normal;
@@ -75,13 +84,49 @@ glm::vec3 PathTracer::SampleRay(glm::vec3 origin,
         float pdf = sampler.Value(origin, direction);
         float scatter = std::max(0.f, glm::dot(normal, direction) / glm::pi<float>());
         throughput *= albedo * scatter / pdf / rate;
-      } else if (material.material_type == MATERIAL_TYPE_SPECULAR) {
+      }
+      if (material.material_type == MATERIAL_TYPE_SPECULAR) {
         origin = hit_record.position;
         direction = glm::reflect(direction, hit_record.normal);
         throughput *= material.albedo_color;
-      } else if (material.material_type == MATERIAL_TYPE_TRANSMISSIVE) {
-        //TODO
-      } else if (material.material_type == MATERIAL_TYPE_PRINCIPLED) {
+      }
+      if (material.material_type == MATERIAL_TYPE_TRANSMISSIVE) {
+        origin = hit_record.position;
+        float ir = 1.33f;
+        float refraction_ratio = 1.0f / ir;
+        throughput *= material.albedo_color;
+        glm::vec3 normal = hit_record.normal;
+        if (glm::dot(normal, direction) < 0.0f) {
+          normal = -normal;
+        }
+        float cosine = glm::dot(normal, direction) / (glm::length(normal) * glm::length(direction));
+        float sine = glm::sqrt(1.0f - cosine * cosine);
+        if (reflectance(cosine, refraction_ratio) > dist(rd)) {
+          direction = glm::reflect(direction, normal);
+        } else {
+          direction = glm::refract(direction, normal, refraction_ratio);
+          refraction_ratio = ir;
+          for (int k = 0; k < 5; k++) {
+            scene_->TraceRay(origin, direction, 1e-3f, 1e4f, &hit_record);
+            origin = hit_record.position;
+            refraction_ratio = 1.0f / refraction_ratio;
+            glm::vec3 normal = hit_record.normal;
+            if (glm::dot(normal, direction) < 0.0f) {
+              normal = -normal;
+            }
+            cosine = glm::dot(normal, direction) / (glm::length(normal) * glm::length(direction));
+            sine = glm::sqrt(1.0f - cosine * cosine);
+            bool cannot_refract = refraction_ratio * sine > 1.0f;
+            if (cannot_refract || reflectance(cosine, refraction_ratio) > dist(rd)) {
+              direction = glm::reflect(direction, normal);
+            } else {
+              direction = glm::refract(direction, normal, refraction_ratio);
+              break;
+            }
+          }
+        }
+      }
+      if (material.material_type == MATERIAL_TYPE_PRINCIPLED) {
         //TODO
       } 
       // else {
