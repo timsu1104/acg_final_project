@@ -1,5 +1,6 @@
 #include "sparks/renderer/path_tracer.h"
 
+#include "sparks/assets/pdf.h"
 #include "sparks/util/util.h"
 #include "glm/gtc/random.hpp"
 #include "glm/glm.hpp"
@@ -14,7 +15,6 @@ PathTracer::PathTracer(const RendererSettings *render_settings,
 
 class HemisphereSampler {
 public:
-    // 生成半球均匀分布的方向
     glm::vec3 Sample(glm::vec3 origin, std::mt19937 rd) const {
         float theta = 2.0 * glm::pi<float>() * RandomFloat(rd), phi = glm::pi<float>() * RandomFloat(rd);
 
@@ -79,7 +79,16 @@ glm::vec3 PathTracer::SampleRay(glm::vec3 origin,
             scene_->GetTextures()[material.albedo_texture_id].Sample(hit_record.tex_coord)
           };
         }
-        CosineHemispherePdf sampler(normal);
+        // Importance Sampling based on Lambertian BRDF
+        // CosineHemispherePdf sampler(normal);
+        // Multiple Importance Sampling based on Lambertian BRDF and Light sampling
+        CosineHemispherePdf brdf_sampler(normal);
+        UniformSpherePdf light_sampler(normal);
+        MixturePdf sampler(
+          &brdf_sampler, 
+          &light_sampler,
+          0.5
+        );
         direction = sampler.Generate(origin, rd);
         float pdf = sampler.Value(origin, direction);
         float scatter = std::max(0.f, glm::dot(normal, direction) / glm::pi<float>());
