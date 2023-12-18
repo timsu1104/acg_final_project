@@ -55,7 +55,7 @@ glm::vec3 PathTracer::SampleRay(glm::vec3 origin,
   HitRecord hit_record;
   const float rate = 0.9;
   const int max_bounce = render_settings_->num_bounces;
-  std::mt19937 rd(sample ^ x ^ y ^ std::time(0));
+  std::mt19937 rd(sample ^ x ^ y ^ rand());
   std::uniform_real_distribution<float> dist(0.0f, 1.0f);
   for (int i = 0; i < max_bounce; i++) {
     auto t = scene_->TraceRay(origin, direction, 1e-3f, 1e4f, &hit_record);
@@ -80,15 +80,15 @@ glm::vec3 PathTracer::SampleRay(glm::vec3 origin,
           };
         }
         // Importance Sampling based on Lambertian BRDF
-        // CosineHemispherePdf sampler(normal);
+        CosineHemispherePdf sampler(normal);
         // Multiple Importance Sampling based on Lambertian BRDF and Light sampling
-        CosineHemispherePdf brdf_sampler(normal);
-        UniformSpherePdf light_sampler(normal);
-        MixturePdf sampler(
-          &brdf_sampler, 
-          &light_sampler,
-          0.5
-        );
+        // CosineHemispherePdf brdf_sampler(normal);
+        // UniformSpherePdf light_sampler(normal);
+        // MixturePdf sampler(
+        //   &brdf_sampler, 
+        //   &light_sampler,
+        //   0.5
+        // );
         direction = sampler.Generate(origin, rd);
         float pdf = sampler.Value(origin, direction);
         float scatter = std::max(0.f, glm::dot(normal, direction) / glm::pi<float>());
