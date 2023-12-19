@@ -1,5 +1,7 @@
 #pragma once
-#include "random"
+#include <random>
+#include "sparks/assets/model.h"
+#include "sparks/assets/scene.h"
 #include "sparks/assets/util.h"
 #include "sparks/assets/vertex.h"
 
@@ -20,9 +22,11 @@ class Onb {
 class Pdf {
  public:
   virtual ~Pdf() = default;
+  // Sample a direction based on the origin and a random_generator
   virtual glm::vec3 Generate(glm::vec3 origin, std::mt19937 &rd) const {
     return glm::vec3(1, 0, 0);
  }
+  // Return the probability of sampling the direction based on the origin
   virtual float Value(glm::vec3 origin, glm::vec3 direction) const {
     return 1.0f;
   }
@@ -46,6 +50,19 @@ class UniformHemispherePdf : public Pdf {
 
  private:
   Onb uvw;
+};
+
+class LightPdf : public Pdf {
+ public:
+  // Collect all light sources in the scene
+  LightPdf(glm::vec3 normal, const Scene *scene);
+  glm::vec3 Generate(glm::vec3 origin, std::mt19937 &rd) const override;
+  float Value(glm::vec3 origin, const glm::vec3 direction) const override;
+  float Area() const {return light_->GetArea();}
+
+ private:
+  const Model* light_;
+  glm::vec3 normal_;
 };
 
 class CosineHemispherePdf : public Pdf {

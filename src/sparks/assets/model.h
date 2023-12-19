@@ -1,4 +1,5 @@
 #pragma once
+#include <random>
 #include "glm/glm.hpp"
 #include "iostream"
 #include "sparks/assets/aabb.h"
@@ -19,6 +20,9 @@ class Model {
       const glm::mat4 &transform) const = 0;
   [[nodiscard]] virtual std::vector<Vertex> GetVertices() const = 0;
   [[nodiscard]] virtual std::vector<uint32_t> GetIndices() const = 0;
+  [[nodiscard]] virtual const float& GetArea() const = 0;
+  [[nodiscard]] virtual const glm::vec3& GetCenter() const = 0;
+  [[nodiscard]] virtual glm::vec3 SamplingPoint(std::mt19937& rd) const = 0;
   virtual const char *GetDefaultEntityName();
 };
 }  // namespace sparks

@@ -1,4 +1,5 @@
 #pragma once
+#include <random>
 #include "sparks/assets/model.h"
 #include "sparks/assets/util.h"
 #include "sparks/assets/vertex.h"
@@ -28,9 +29,16 @@ class Mesh : public Model {
   static bool LoadObjFile(const std::string &obj_file_path, Mesh &mesh);
   void WriteObjFile(const std::string &file_path) const;
   void MergeVertices();
+  const float& GetArea() const override;
+  const glm::vec3& GetCenter() const override;
+  glm::vec3 SamplingPoint(std::mt19937& rd) const override;
 
  protected:
   std::vector<Vertex> vertices_;
   std::vector<uint32_t> indices_;
+  std::vector<float> area_ratios;
+  std::vector<float> prob_list;
+  float area_;
+  glm::vec3 center_;
 };
 }  // namespace sparks

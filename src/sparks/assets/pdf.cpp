@@ -64,6 +64,33 @@ float UniformHemispherePdf::Value(glm::vec3 origin, glm::vec3 direction) const {
   return 0.5f * INV_PI;
 }
 
+LightPdf::LightPdf(glm::vec3 normal, const Scene *scene){
+  normal_ = normal;
+  for (auto &entity : scene->GetEntities()) {
+    const Model* model = entity.GetModel();
+    if (entity.GetMaterial().material_type == MATERIAL_TYPE_EMISSION) {
+      light_ = model;
+      break;
+    }
+  }
+}
+
+glm::vec3 LightPdf::Generate(glm::vec3 origin, std::mt19937 &rd) const {
+  auto sample = light_->SamplingPoint(rd);
+  if (glm::dot(sample - origin, normal_) > 0.0f) {
+    return glm::normalize(sample - origin);
+  } else {
+    return glm::vec3{0.0f};
+  }
+}
+
+float LightPdf::Value(glm::vec3 origin, glm::vec3 direction) const {
+  // HitRecord light_hit_record;
+  // float light_t = light_->TraceRay(origin, direction, 1e-3, &light_hit_record);
+  float area = light_->GetArea();
+  return 1.0f / area;
+}
+
 CosineHemispherePdf::CosineHemispherePdf(glm::vec3 normal) {
   uvw = Onb(normal);
 }

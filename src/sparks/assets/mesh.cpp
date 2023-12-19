@@ -17,6 +17,34 @@ Mesh::Mesh(const std::vector<Vertex> &vertices,
            const std::vector<uint32_t> &indices) {
   vertices_ = vertices;
   indices_ = indices;
+
+  // Calculate Surface area
+  area_ = 0;
+  for (int i = 0; i < indices_.size(); i += 3) {
+    int j = i + 1, k = i + 2;
+    const auto &v0 = vertices_[indices_[i]];
+    const auto &v1 = vertices_[indices_[j]];
+    const auto &v2 = vertices_[indices_[k]];
+    float area = glm::length(glm::cross(v1.position - v0.position, v2.position - v0.position)) * 0.5f;
+    area_ += area;
+    area_ratios.emplace_back(area);
+  }
+  for (auto& area_ratio : area_ratios) {
+    area_ratio /= area_;
+  }
+  prob_list.emplace_back(area_ratios[0]);
+  for (int i = 1; i < area_ratios.size(); ++i) {
+    prob_list.emplace_back(prob_list[i - 1] + area_ratios[i]);
+  }
+
+  // Compute the center
+  glm::vec3 max_coords, min_coords;
+  max_coords = min_coords = vertices_[0].position;
+  for (auto &vertex : vertices_) {
+    max_coords = glm::max(max_coords, vertex.position);
+    min_coords = glm::min(min_coords, vertex.position);
+  }
+  center_ = (max_coords + min_coords) * 0.5f;
 }
 
 Mesh Mesh::Cube(const glm::vec3 &center, const glm::vec3 &size) {
@@ -60,6 +88,25 @@ Mesh Mesh::Sphere(const glm::vec3 &center, float radius) {
     }
   }
   return {vertices, indices};
+}
+
+const float& Mesh::GetArea() const {
+  return area_;
+}
+
+const glm::vec3& Mesh::GetCenter() const {
+  return center_;
+}
+
+glm::vec3 Mesh::SamplingPoint(std::mt19937& rd) const {
+  std::uniform_real_distribution<float> dist(0.0f, 1.0f);
+  float samp = dist(rd);
+  int sample_index = std::lower_bound(prob_list.begin(), prob_list.end(), samp) - prob_list.begin();
+  const auto& a = vertices_[indices_[sample_index * 3]];
+  const auto& b = vertices_[indices_[sample_index * 3 + 1]];
+  const auto& c = vertices_[indices_[sample_index * 3 + 2]];
+  float u = glm::sqrt(dist(rd)), v = dist(rd);
+  return a.position * (1.0f - u) + b.position * (u * (1.0f - v)) + c.position * (u * v);
 }
 
 AxisAlignedBoundingBox Mesh::GetAABB(const glm::mat4 &transform) const {

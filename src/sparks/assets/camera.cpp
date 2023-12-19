@@ -47,11 +47,10 @@ void Camera::GenerateRay(float aspect,
   origin = glm::vec3{0.0f};
   auto tan_fov = std::tan(glm::radians(fov_ * 0.5f));
 //   Round Aperture
-//   float theta = 2.0f * PI * rand_w;
-//   float sin_theta = std::sin(theta);
-//   float cos_theta = std::cos(theta);
-//   origin =
-//       glm::vec3{glm::vec2{sin_theta, cos_theta} * rand_r * aperture_, 0.0f};
+  // float theta = 2.0f * PI * rand_w;
+  // float sin_theta = std::sin(theta);
+  // float cos_theta = std::cos(theta);
+  // origin = glm::vec3{glm::vec2{sin_theta, cos_theta} * rand_r * aperture_, 0.0f};
 //   Square Aperture
   float x_origin_offset = rand_w * 2 - 1;
   float y_origin_offset = rand_r * 2 - 1;
