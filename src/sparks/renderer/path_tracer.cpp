@@ -83,39 +83,35 @@ glm::vec3 PathTracer::SampleRay(glm::vec3 origin,
         // direct light
         LightPdf direct_light_sampler(normal, scene_);
         glm::vec3 light_dir = direct_light_sampler.Generate(origin, rd);
-        if (glm::dot(light_dir, normal) > 0.0f) {
-          HitRecord light_hit_record;
-          auto light_t = scene_->TraceRay(origin, light_dir, 1e-3f, 1e4f, &light_hit_record);
-          if (light_t > 0.0f) {
-            auto light_pdf = direct_light_sampler.Value(origin, light_dir);
-            auto &light_material = scene_->GetEntity(light_hit_record.hit_entity_id).GetMaterial();
-            if (light_material.material_type == MATERIAL_TYPE_EMISSION) {
-              float distance = glm::length(light_hit_record.position - origin);
-              auto light_color = light_material.emission * light_material.emission_strength;
-              float cos_i = std::max(0.f, glm::dot(normal, light_dir));
-              float cos_l = std::max(0.f, glm::dot(light_hit_record.normal, light_dir));
-              float dw = cos_l / (light_pdf * distance * distance);
-              l_dir += 
-                throughput
-                 * (albedo / glm::pi<float>())
-                 * light_color
-                 * cos_i
-                 * dw;
-            }
+        if (light_dir != glm::zero<glm::vec3>()) {
+          auto light_pdf = direct_light_sampler.Value(origin, light_dir);
+          if (light_pdf > 0) {
+            auto &light_material = direct_light_sampler.GetMaterial();
+            auto light_color = light_material.emission * light_material.emission_strength;
+            float scatter = std::max(0.f, glm::dot(normal, light_dir) / glm::pi<float>());
+            l_dir += 
+              throughput
+                * albedo
+                * scatter
+                * light_color
+                / light_pdf;
           }
         }
         
         // Importance Sampling based on Lambertian BRDF
-        CosineHemispherePdf sampler(normal);
+        // CosineHemispherePdf sampler(normal, scene_);
+        
+        // Importance Sampling based on sampling from light
+        // LightPdf sampler(normal, scene_);
 
         // Multiple Importance Sampling based on Lambertian BRDF and Light sampling
-        // CosineHemispherePdf brdf_sampler(normal);
-        // LightPdf light_sampler(normal, scene_);
-        // MixturePdf sampler(
-        //   &brdf_sampler, 
-        //   &light_sampler,
-        //   0.5f
-        // );
+        CosineHemispherePdf brdf_sampler(normal);
+        LightPdf light_sampler(normal, scene_);
+        MixturePdf sampler(
+          &brdf_sampler, 
+          &light_sampler,
+          0.8f
+        );
 
         direction = sampler.Generate(origin, rd);
         float pdf = sampler.Value(origin, direction);
@@ -164,7 +160,8 @@ glm::vec3 PathTracer::SampleRay(glm::vec3 origin,
         }
       }
       if (material.material_type == MATERIAL_TYPE_PRINCIPLED) {
-        //TODO
+        // Disney's principled BSDF
+
       } 
       // else {
       //   throughput *=

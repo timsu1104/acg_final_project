@@ -1,5 +1,6 @@
 #pragma once
 #include <random>
+#include "sparks/assets/material.h"
 #include "sparks/assets/model.h"
 #include "sparks/assets/scene.h"
 #include "sparks/assets/util.h"
@@ -59,9 +60,12 @@ class LightPdf : public Pdf {
   glm::vec3 Generate(glm::vec3 origin, std::mt19937 &rd) const override;
   float Value(glm::vec3 origin, const glm::vec3 direction) const override;
   float Area() const {return light_->GetArea();}
+  const Material& GetMaterial() const {return *material;}
 
  private:
+  const Scene* scene_;
   const Model* light_{nullptr};
+  const Material* material;
   glm::vec3 normal_;
 };
 
