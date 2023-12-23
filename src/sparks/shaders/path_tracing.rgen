@@ -7,6 +7,7 @@
 #include "uniform_objects.glsl"
 #include "material.glsl"
 #include "constants.glsl"
+#include "pdf.glsl"
 // clang-format on
 
 layout(binding = 0) uniform accelerationStructureEXT scene;
@@ -67,9 +68,44 @@ void TraceRay(vec3 origin, vec3 direction) {
   hit_record = GetHitRecord(ray_payload, origin, direction);
 }
 
+Onb Onb_from_z(vec3 z_dir) {
+  Onb ret;
+  ret._w = normalize(z_dir);
+  ret._u = normalize(cross(z_dir, (abs(z_dir.x) > 0.1 ? vec3(0.0, 1.0, 0.0): vec3(1.0, 0.0, 0.0))));
+  ret._v = normalize(cross(z_dir, ret._u));
+  return ret;
+}
+
+vec3 local(Onb uvw, float x, float y, float z) {
+  return x * uvw._u + y * uvw._v + z * uvw._w;
+}
+
+vec3 Generate_Cos(CosineHemispherePdf pdf, vec3 origin) {
+  float u1 = RandomFloat();
+  float u2 = RandomFloat();
+  float z_r = sqrt(1.0 - u1);
+  float z = sqrt(u1);
+  float phi = 2.0 * PI * u2;
+  vec3 ret = local(pdf.uvw, z_r * cos(phi), z_r * sin(phi), z);
+  return ret;
+}
+
+float Value_Cos(CosineHemispherePdf pdf, vec3 direction) {
+  float cos_theta = dot(pdf.uvw._w, direction);
+  return cos_theta < 0.0 ? 0.0 : cos_theta / PI;
+}
+
+float reflectance(float cosine, float ref_idx) {
+  float r0 = (1.0 - ref_idx) / (1.0 + ref_idx);
+  r0 = r0 * r0;
+  return r0 + (1 - r0) * pow((1.0f - cosine), 5);
+}
+
 vec3 SampleRay(vec3 origin, vec3 direction) {
   vec3 radiance = vec3(0.0);
   vec3 throughput = vec3(1.0);
+  vec3 l_dir = vec3(0.0);
+  const float rate = 0.9;
   for (int b = 0; b < guo.num_bounces; b++) {
     TraceRay(origin, direction);
 
@@ -81,22 +117,91 @@ vec3 SampleRay(vec3 origin, vec3 direction) {
       if (material.material_type == MATERIAL_TYPE_EMISSION) {
         radiance += throughput * material.emission * material.emission_strength;
         break;
-      } else {
-        throughput *= material.albedo_color *
-                      vec3(texture(texture_samplers[material.albedo_texture_id],
-                                   hit_record.tex_coord));
+      }
+      
+      if (material.material_type == MATERIAL_TYPE_LAMBERTIAN) {
         origin = hit_record.position;
-        direction = guo.envmap_light_direction;
-        radiance += throughput * guo.envmap_minor_color;
-        throughput *= max(dot(direction, hit_record.normal), 0.0) * 2.0;
-        TraceRay(origin, direction);
-        if (ray_payload.t < 0.0f) {
-          radiance += throughput * guo.envmap_major_color;
+        vec3 albedo = material.albedo_color;
+        vec3 normal = hit_record.normal;
+        if (dot(normal, direction) > 0.0) {
+          normal = -normal;
         }
+        if (material.albedo_texture_id >= 0) {
+          albedo *= vec3(texture(texture_samplers[material.albedo_texture_id],
+                                   hit_record.tex_coord));
+        }
+
+        CosineHemispherePdf brdf_sample;
+        brdf_sample.uvw = Onb_from_z(normal);
+        direction = Generate_Cos(brdf_sample, origin);
+        float pdf = Value_Cos(brdf_sample, direction);
+        float scatter = max(0.0, dot(normal, direction) / PI);
+        throughput *= albedo * scatter / pdf / rate;
+      }
+
+      if (material.material_type == MATERIAL_TYPE_SPECULAR) {
+        origin = hit_record.position;
+        direction = reflect(direction, hit_record.normal);
+        throughput *= material.albedo_color;
+      }
+
+      if (material.material_type == MATERIAL_TYPE_TRANSMISSIVE) {
+        origin = hit_record.position;
+        float ir = 1.33;
+        float refraction_ratio = 1.0 / ir;
+        throughput *= material.albedo_color;
+        vec3 normal = hit_record.normal;
+        if (dot(normal, direction) < 0.0) {
+          normal = normal;
+        }
+        float cosine = dot(normal, direction) / (length(normal) * length(direction));
+        float sine = sqrt(1.0 - cosine * cosine);
+        if (reflectance(cosine, refraction_ratio) > RandomFloat()) {
+          direction = reflect(direction, normal);
+        } else {
+          direction = refract(direction, normal, refraction_ratio);
+          refraction_ratio = ir;
+          for (int k = 0; k < 5; k++) {
+            TraceRay(origin, direction);
+            origin = hit_record.position;
+            refraction_ratio = 1.0 / refraction_ratio;
+            vec3 normal = hit_record.normal;
+            if (dot(normal, direction) < 0.0) {
+              normal = -normal;
+            }
+            cosine = dot(normal, direction) / (length(normal) * length(direction));
+            sine = sqrt(1.0 - cosine * cosine);
+            bool cannot_refract = refraction_ratio * sine > 1.0;
+            if (cannot_refract || reflectance(cosine, refraction_ratio) > RandomFloat()) {
+              direction = reflect(direction, normal);
+            } else {
+              direction = refract(direction, normal, refraction_ratio);
+              break;
+            }
+          }
+        }
+      }
+
+      if (RandomFloat() > rate || max(throughput.x, max(throughput.y, throughput. z)) < 1e-5) {
         break;
       }
+      //  else {
+      //   throughput *= material.albedo_color *
+      //                 vec3(texture(texture_samplers[material.albedo_texture_id],
+      //                              hit_record.tex_coord));
+      //   origin = hit_record.position;
+      //   direction = guo.envmap_light_direction;
+      //   radiance += throughput * guo.envmap_minor_color;
+      //   throughput *= max(dot(direction, hit_record.normal), 0.0) * 2.0;
+      //   TraceRay(origin, direction);
+      //   if (ray_payload.t < 0.0f) {
+      //     radiance += throughput * guo.envmap_major_color;
+      //   }
+      //   break;
+      // }
     }
   }
+  radiance = l_dir + radiance;
   return radiance;
 }
 
