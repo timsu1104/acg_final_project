@@ -113,5 +113,6 @@ class App {
   bool rebuild_ray_tracing_pipeline_{false};
   uint32_t accumulated_sample_{0};
   bool gui_pause_{false};
+  bool disable_instant_update_{false};
 };
 }  // namespace sparks

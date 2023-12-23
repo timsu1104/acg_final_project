@@ -227,7 +227,7 @@ void App::OnUpdate(uint32_t ms) {
   if (output_render_result_) {
     UploadAccumulationResult();
   }
-  if (reset_accumulation_) {
+  if (reset_accumulation_ && !disable_instant_update_) {
     core_->GetDevice()->WaitIdle();
     if (!app_settings_.hardware_renderer) {
       renderer_->ResetAccumulation();
@@ -615,7 +615,7 @@ void App::UpdateImGui() {
   if (!io.WantCaptureMouse) {
     scene.GetCamera().UpdateFov(-io.MouseWheel);
     if (io.MouseWheel) {
-      reset_accumulation_ = true;
+      // reset_accumulation_ = true;
     }
   }
 
@@ -1044,6 +1044,10 @@ void App::UpdateCamera() {
     }
     if (ImGui::IsKeyDown(ImGuiKey_Space)) {
       position += duration * 0.001f * (y)*speed;
+      reset_accumulation_ = true;
+    }
+    if (ImGui::IsKeyDown(ImGuiKey_L)) {
+      disable_instant_update_ = !disable_instant_update_;
       reset_accumulation_ = true;
     }
   }

@@ -66,6 +66,7 @@ float UniformHemispherePdf::Value(glm::vec3 origin, glm::vec3 direction) const {
 
 LightPdf::LightPdf(glm::vec3 normal, const Scene *scene){
   normal_ = normal;
+  light_ = NULL;
   for (auto &entity : scene->GetEntities()) {
     const Model* model = entity.GetModel();
     if (entity.GetMaterial().material_type == MATERIAL_TYPE_EMISSION) {
@@ -76,6 +77,7 @@ LightPdf::LightPdf(glm::vec3 normal, const Scene *scene){
 }
 
 glm::vec3 LightPdf::Generate(glm::vec3 origin, std::mt19937 &rd) const {
+  if (light_ == NULL) return glm::vec3{0.0f};
   auto sample = light_->SamplingPoint(rd);
   if (glm::dot(sample - origin, normal_) > 0.0f) {
     return glm::normalize(sample - origin);

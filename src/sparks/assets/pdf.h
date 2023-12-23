@@ -61,7 +61,7 @@ class LightPdf : public Pdf {
   float Area() const {return light_->GetArea();}
 
  private:
-  const Model* light_;
+  const Model* light_{nullptr};
   glm::vec3 normal_;
 };
 
