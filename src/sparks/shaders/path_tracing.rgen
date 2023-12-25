@@ -7,8 +7,6 @@
 #include "uniform_objects.glsl"
 #include "material.glsl"
 #include "constants.glsl"
-#include "pdf.glsl"
-#include "vertex.glsl"
 // clang-format on
 
 layout(binding = 0) uniform accelerationStructureEXT scene;
@@ -68,6 +66,10 @@ void TraceRay(vec3 origin, vec3 direction) {
               direction, tmax, 0);
   hit_record = GetHitRecord(ray_payload, origin, direction);
 }
+
+// clang-format off
+#include "pdf.glsl"
+// clang-format on
 
 Onb Onb_from_z(vec3 z_dir) {
   Onb ret;
