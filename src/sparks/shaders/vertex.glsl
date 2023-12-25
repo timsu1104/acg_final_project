@@ -19,3 +19,55 @@ Vertex GetVertex(uint index) {
   vertex.tex_coord = vec2(vertices[offset + 9], vertices[offset + 10]);
   return vertex;
 }
+
+float GetArea(int idx) {
+  float area_ = 0;
+  float v_offset = object_infos[idx].vertex_offset;
+  float i_offset = object_infos[idx].index_offset;
+  float v_offset_up, i_offset_up;
+  if (idx == object_infos.length() - 1) {
+    v_offset_up = vertices.length();
+    i_offset_up = indices.length();
+  } else {
+    v_offset_up = object_infos[idx + 1].vertex_offset;
+    i_offset_up = object_infos[idx + 1].index_offset;
+  }
+  for (int i = i_offset; i < i_offset_up; i += 3) {
+    int j = i + 1, k = i + 2;
+    Vertex v0 = GetVertex(v_offset+indices[i]);
+    Vertex v1 = GetVertex(v_offset+indices[j]);
+    Vertex v2 = GetVertex(v_offset+indices[k]);
+    float area = length(cross(v1.position - v0.position, v2.position - v0.position)) * 0.5f;
+    area_ += area;
+  }
+  return area_;
+}
+
+vec3 sample_mesh(uint idx) {
+  uint v_offset = object_infos[idx].vertex_offset;
+  uint i_offset = object_infos[idx].index_offset;
+  uint v_offset_up, i_offset_up;
+  uint sample_index = 0;
+  float sampled_float = RandomFloat();
+  float u = RandomFloat();
+  float v = RandomFloat();
+
+  if (idx == object_infos.length() - 1) {
+    v_offset_up = vertices.length();
+    i_offset_up = indices.length();
+  } else {
+    v_offset_up = object_infos[idx + 1].vertex_offset;
+    i_offset_up = object_infos[idx + 1].index_offset;
+  }
+  for (uint i = i_offset; i < i_offset_up; i += 3) {
+    uint j = i + 1, k = i + 2;
+    Vertex v0 = GetVertex(v_offset+indices[i]);
+    Vertex v1 = GetVertex(v_offset+indices[j]);
+    Vertex v2 = GetVertex(v_offset+indices[k]);
+    float area = length(cross(v1.position - v0.position, v2.position - v0.position)) * 0.5;
+    if (sampled_float >= 0 && sampled_float < area) {
+      return v0.position * (1.0 - u) + v1.position * (u * (1.0 - v)) + v2.position * (u * v);
+    }
+    sampled_float -= area;
+  }
+}
