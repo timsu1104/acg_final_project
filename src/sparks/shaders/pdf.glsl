@@ -17,10 +17,37 @@ struct MixturePdf {
     float prob;
 };
 
+Onb Onb_from_z(vec3 z_dir) {
+  Onb ret;
+  ret._w = normalize(z_dir);
+  ret._u = normalize(cross(z_dir, (abs(z_dir.x) > 0.1 ? vec3(0.0, 1.0, 0.0): vec3(1.0, 0.0, 0.0))));
+  ret._v = normalize(cross(z_dir, ret._u));
+  return ret;
+}
+
+vec3 local(Onb uvw, float x, float y, float z) {
+  return x * uvw._u + y * uvw._v + z * uvw._w;
+}
+
+vec3 Generate_Cos(CosineHemispherePdf pdf, vec3 origin) {
+  float u1 = RandomFloat();
+  float u2 = RandomFloat();
+  float z_r = sqrt(1.0 - u1);
+  float z = sqrt(u1);
+  float phi = 2.0 * PI * u2;
+  vec3 ret = local(pdf.uvw, z_r * cos(phi), z_r * sin(phi), z);
+  return ret;
+}
+
+float Value_Cos(CosineHemispherePdf pdf, vec3 direction) {
+  float cos_theta = dot(pdf.uvw._w, direction);
+  return cos_theta < 0.0 ? 0.0 : cos_theta / PI;
+}
+
 vec3 Generate_Light(LightPdf pdf, vec3 origin) {
-  vec3 sample = sample_mesh(pdf.index);
-  if (dot(sample - origin, pdf.normal_) > 0.0) {
-    return normalize(sample - origin);
+  vec3 light_sample = sample_mesh(pdf.index);
+  if (dot(light_sample - origin, pdf.normal_) > 0.0) {
+    return normalize(light_sample - origin);
   } else {
     return vec3(0.0);
   }
@@ -29,12 +56,12 @@ vec3 Generate_Light(LightPdf pdf, vec3 origin) {
 float Value_Light(LightPdf pdf, vec3 origin, vec3 direction) {
   TraceRay(origin, direction);
   int idx = hit_record.hit_entity_id;
-  if (idx == -1 || material[idx].material_type != MATERIAL_TYPE_EMISSION) {
+  if (idx == -1 || materials[idx].material_type != MATERIAL_TYPE_EMISSION) {
     return 0.0;
   }
   float area = GetArea(idx);
-  auto dist = distance(hit_record.position, origin);
-  auto cosine = abs(dot(direction, hit_record.normal)) / direction.length();
+  float dist = distance(hit_record.position, origin);
+  float cosine = abs(dot(direction, hit_record.normal)) / direction.length();
   return (dist * dist) / (cosine * area);
 }
 

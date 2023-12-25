@@ -22,9 +22,9 @@ Vertex GetVertex(uint index) {
 
 float GetArea(int idx) {
   float area_ = 0;
-  float v_offset = object_infos[idx].vertex_offset;
-  float i_offset = object_infos[idx].index_offset;
-  float v_offset_up, i_offset_up;
+  uint v_offset = object_infos[idx].vertex_offset;
+  uint i_offset = object_infos[idx].index_offset;
+  uint v_offset_up, i_offset_up;
   if (idx == object_infos.length() - 1) {
     v_offset_up = vertices.length();
     i_offset_up = indices.length();
@@ -32,8 +32,8 @@ float GetArea(int idx) {
     v_offset_up = object_infos[idx + 1].vertex_offset;
     i_offset_up = object_infos[idx + 1].index_offset;
   }
-  for (int i = i_offset; i < i_offset_up; i += 3) {
-    int j = i + 1, k = i + 2;
+  for (uint i = i_offset; i < i_offset_up; i += 3) {
+    uint j = i + 1, k = i + 2;
     Vertex v0 = GetVertex(v_offset+indices[i]);
     Vertex v1 = GetVertex(v_offset+indices[j]);
     Vertex v2 = GetVertex(v_offset+indices[k]);
@@ -70,4 +70,5 @@ vec3 sample_mesh(uint idx) {
     }
     sampled_float -= area;
   }
+  return vec3(0.0);
 }
