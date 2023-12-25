@@ -135,17 +135,21 @@ vec3 SampleRay(vec3 origin, vec3 direction) {
         CosineHemispherePdf brdf_sample;
         brdf_sample.uvw = Onb_from_z(normal);
         
-        // Importance Sampling
+        // Importance Sampling from Lambertian BRDF
         // direction = Generate_Cos(brdf_sample, origin);
         // float pdf = Value_Cos(brdf_sample, direction);
+        
+        // Importance Sampling from Light
+        direction = Generate_Light(light_sampler, origin);
+        float pdf = Value_Light(light_sampler, origin, direction);
 
         // Multiple Importance Sampling
-        MixturePdf mixpdf;
-        mixpdf.light_ = light_sampler;
-        mixpdf.cosine_ = brdf_sample;
-        mixpdf.prob = 0.2;
-        direction = Generate_Mix(mixpdf, origin);
-        float pdf = Value_Mix(mixpdf, origin, direction);
+        // MixturePdf mixpdf;
+        // mixpdf.light_ = light_sampler;
+        // mixpdf.cosine_ = brdf_sample;
+        // mixpdf.prob = 0.2;
+        // direction = Generate_Mix(mixpdf, origin);
+        // float pdf = Value_Mix(mixpdf, origin, direction);
 
         float scatter = max(0.0, dot(normal, direction) / PI);
         throughput *= albedo * scatter / pdf / rate;
