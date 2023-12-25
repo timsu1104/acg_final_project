@@ -20,7 +20,7 @@ Vertex GetVertex(uint index) {
   return vertex;
 }
 
-float GetArea(int idx) {
+float GetArea(uint idx) {
   float area_ = 0;
   uint v_offset = object_infos[idx].vertex_offset;
   uint i_offset = object_infos[idx].index_offset;
@@ -43,7 +43,7 @@ float GetArea(int idx) {
   return area_;
 }
 
-vec3 sample_mesh(uint idx) {
+vec3 sample_mesh(uint idx, float total_area) {
   uint v_offset = object_infos[idx].vertex_offset;
   uint i_offset = object_infos[idx].index_offset;
   uint v_offset_up, i_offset_up;
@@ -65,10 +65,11 @@ vec3 sample_mesh(uint idx) {
     Vertex v1 = GetVertex(v_offset+indices[j]);
     Vertex v2 = GetVertex(v_offset+indices[k]);
     float area = length(cross(v1.position - v0.position, v2.position - v0.position)) * 0.5;
-    if (sampled_float >= 0 && sampled_float < area) {
+    float prob = area / total_area;
+    if (sampled_float >= 0 && sampled_float < prob) {
       return v0.position * (1.0 - u) + v1.position * (u * (1.0 - v)) + v2.position * (u * v);
     }
-    sampled_float -= area;
+    sampled_float -= prob;
   }
   return vec3(0.0);
 }

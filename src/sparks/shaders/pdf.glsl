@@ -8,6 +8,7 @@ struct CosineHemispherePdf {
 
 struct LightPdf {
     uint index;
+    float area;
     vec3 normal_;
 };
 
@@ -45,7 +46,7 @@ float Value_Cos(CosineHemispherePdf pdf, vec3 direction) {
 }
 
 vec3 Generate_Light(LightPdf pdf, vec3 origin) {
-  vec3 light_sample = sample_mesh(pdf.index);
+  vec3 light_sample = sample_mesh(pdf.index, pdf.area);
   if (dot(light_sample - origin, pdf.normal_) > 0.0) {
     return normalize(light_sample - origin);
   } else {
@@ -59,10 +60,9 @@ float Value_Light(LightPdf pdf, vec3 origin, vec3 direction) {
   if (idx == -1 || materials[idx].material_type != MATERIAL_TYPE_EMISSION) {
     return 0.0;
   }
-  float area = GetArea(idx);
   float dist = distance(hit_record.position, origin);
   float cosine = abs(dot(direction, hit_record.normal)) / direction.length();
-  return (dist * dist) / (cosine * area);
+  return (dist * dist) / (cosine * pdf.area);
 }
 
 vec3 Generate_Mix(MixturePdf pdf, vec3 origin) {
