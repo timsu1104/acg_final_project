@@ -423,6 +423,17 @@ Scene::Scene(const std::string &filename) : Scene() {
       Mesh mesh = Mesh(child_element);
       Material material{};
 
+      auto vel_element = child_element->FirstChildElement("velocity");
+      auto ang_vel_element = child_element->FirstChildElement("angular");
+      glm::vec3 vel = glm::vec3{0.0f};
+      glm::vec3 ang_vel = glm::vec3{0.0f};
+      if (vel_element) {
+        vel = StringToVec3(vel_element->FindAttribute("value")->Value());
+      }
+      if (ang_vel_element) {
+        ang_vel = StringToVec3(ang_vel_element->FindAttribute("value")->Value());
+      }
+
       auto grandchild_element = child_element->FirstChildElement("material");
       if (grandchild_element) {
         material = Material(this, grandchild_element);
@@ -433,9 +444,9 @@ Scene::Scene(const std::string &filename) : Scene() {
       auto name_attribute = child_element->FindAttribute("name");
       if (name_attribute) {
         AddEntity(AcceleratedMesh(mesh), material, transformation,
-                  std::string(name_attribute->Value()));
+                  std::string(name_attribute->Value()), vel, ang_vel);
       } else {
-        AddEntity(AcceleratedMesh(mesh), material, transformation);
+        AddEntity(AcceleratedMesh(mesh), material, transformation, vel, ang_vel);
       }
     } else {
       LAND_ERROR("Unknown Element Type: {}", child_element->Value());

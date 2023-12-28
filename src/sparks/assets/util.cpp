@@ -126,4 +126,15 @@ glm::mat4 XmlComposeTransformMatrix(tinyxml2::XMLElement *object_element) {
   }
   return result;
 }
+
+glm::mat4 XmlComposeVel(tinyxml2::XMLElement *object_element) {
+  glm::mat4 result{1.0f};
+  for (auto child_element = object_element->FirstChildElement("velocity");
+       child_element;
+       child_element = child_element->NextSiblingElement("velocity")) {
+    result *= XmlTransformMatrix(child_element);
+  }
+  return result;
+}
+
 }  // namespace sparks

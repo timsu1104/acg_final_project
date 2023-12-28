@@ -23,6 +23,7 @@ class App {
 
   void OpenFile(const std::string &file_path);
   void Capture(const std::string &file_path);
+  void Record(const std::string &file_path);
   void UpdateImGui();
   void UpdateDynamicBuffer();
   void UpdateHostStencilBuffer();
@@ -31,7 +32,7 @@ class App {
   bool UpdateImGuizmo();
   void UpdateCamera();
   void UploadAccumulationResult();
-  void UpdateTopLevelAccelerationStructure();
+  void UpdateTopLevelAccelerationStructure(uint32_t);
 
   void RebuildRenderNode();
   void BuildRayTracingPipeline();
@@ -114,5 +115,9 @@ class App {
   uint32_t accumulated_sample_{0};
   bool gui_pause_{false};
   bool disable_instant_update_{false};
+  bool recording_{false};
+  uint32_t refresh_{1000};
+  const int fps_ = 30;
+  std::vector<std::vector<glm::vec4>> recording_buffer_;
 };
 }  // namespace sparks

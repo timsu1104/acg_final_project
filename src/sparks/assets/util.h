@@ -18,4 +18,8 @@ glm::mat4 XmlTransformMatrix(tinyxml2::XMLElement *transform_element);
 
 glm::mat4 XmlComposeTransformMatrix(tinyxml2::XMLElement *object_element);
 
+glm::mat4 XmlComposeVel(tinyxml2::XMLElement *object_element);
+
+glm::mat4 XmlComposeAngVel(tinyxml2::XMLElement *object_element);
+
 }  // namespace sparks

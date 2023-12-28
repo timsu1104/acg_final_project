@@ -5,9 +5,11 @@
             "includePath": [
                 "${workspaceFolder}/**",
                 "${workspaceFolder}/external/grassland/external/glm",
-                "${workspaceFolder}/external/grassland/external/glm",
+                "${workspaceFolder}/external/opencv/build/include",
                 "${workspaceFolder}/src",
-                "${workspaceFolder}/src"
+                "${workspaceFolder}/src",
+                "${workspaceFolder}/external/opencv/build/include",
+                "${workspaceFolder}/external/opencv/build/include"
             ],
             "defines": [
                 "_DEBUG",

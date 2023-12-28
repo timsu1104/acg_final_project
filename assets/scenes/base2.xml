@@ -20,7 +20,7 @@
 
 	<model type="sphere">
 		<center value="0.0 0.0 0.0"/>
-		<radius value="0.2"/>
+		<radius value="0.5"/>
 
 		<transform type="translate" value="0.0 0.5 0.0"/>
 
@@ -28,6 +28,9 @@
 			<albedo value="1 1 1"/>
 			<albedo_texture value="../../textures/earth.jpg"/>
 		</material>
+
+		<!-- <velocity value="0.1 0.0 0.0"/> -->
+		<angular value="0.0 50.0 0.0"/>
 	</model>
 
 </scene>

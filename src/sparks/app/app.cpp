@@ -9,6 +9,8 @@
 #include "sparks/util/util.h"
 #include "stb_image_write.h"
 #include "tinyfiledialogs.h"
+#include <cstdlib>
+#include <filesystem>
 
 namespace sparks {
 
@@ -235,7 +237,27 @@ void App::OnUpdate(uint32_t ms) {
     }
   }
   if (app_settings_.hardware_renderer) {
-    UpdateTopLevelAccelerationStructure();
+   if (refresh_ < ms) {
+      reset_accumulation_ = true;
+      if (recording_) {
+        uint32_t current_sample = accumulated_sample_;
+        auto tt = std::chrono::system_clock::to_time_t(
+            std::chrono::system_clock::now());
+        auto now = std::make_unique<std::tm>();
+        localtime_s(now.get(), &tt);
+        Capture("screenshot_" + std::to_string(now->tm_year + 1900) + "_" +
+                std::to_string(now->tm_mon) + "_" + std::to_string(now->tm_mday) +
+                "_" + std::to_string(now->tm_hour) + "_" +
+                std::to_string(now->tm_min) + "_" + std::to_string(now->tm_sec) +
+                "_" + std::to_string(current_sample) + "spp.png");
+        }
+      refresh_ = 1000;
+    } else {
+      refresh_ -= ms;
+    } 
+    // reset_accumulation_ = true;
+    UpdateTopLevelAccelerationStructure(ms);
+    glfwPollEvents();
   }
   if (rebuild_ray_tracing_pipeline_) {
     BuildRayTracingPipeline();
@@ -1050,6 +1072,19 @@ void App::UpdateCamera() {
       disable_instant_update_ = !disable_instant_update_;
       reset_accumulation_ = true;
     }
+    if (ImGui::IsKeyDown(ImGuiKey_M)) {
+      if (recording_) {
+        auto tt = std::chrono::system_clock::to_time_t(
+          std::chrono::system_clock::now());
+        auto now = std::make_unique<std::tm>();
+        localtime_s(now.get(), &tt);
+        Record("Video_" + std::to_string(now->tm_year + 1900) + "_" +
+              std::to_string(now->tm_mon) + "_" + std::to_string(now->tm_mday) +
+              "_" + std::to_string(now->tm_hour) + "_" +
+              std::to_string(now->tm_min) + "_" + std::to_string(now->tm_sec));
+      }
+      recording_ = !recording_;
+    }
   }
 
   auto rotation_scale = 1.0f / float(core_->GetWindowHeight());
@@ -1085,7 +1120,7 @@ void App::UploadAccumulationResult() {
   }
 }
 
-void App::UpdateTopLevelAccelerationStructure() {
+void App::UpdateTopLevelAccelerationStructure(uint32_t ms) {
   std::vector<std::pair<vulkan::raytracing::BottomLevelAccelerationStructure *,
                         glm::mat4>>
       object_instances;
@@ -1094,7 +1129,7 @@ void App::UpdateTopLevelAccelerationStructure() {
     auto &entity = entities[i];
     object_instances.emplace_back(
         bottom_level_acceleration_structures_[i].get(),
-        entity.GetTransformMatrix());
+        entity.UpdateTransformMatrix(ms));
   }
   top_level_acceleration_structure_->UpdateAccelerationStructure(
       core_->GetCommandPool(), object_instances);
@@ -1186,12 +1221,73 @@ void App::Capture(const std::string &file_path) {
     std::memcpy(captured_buffer.data(), image_buffer->Map(),
                 sizeof(glm::vec4) * image->GetWidth() * image->GetHeight());
     float scale = 1.0f / float(std::max(1u, accumulated_sample_));
-    write_buffer(captured_buffer.data(), image->GetWidth(), image->GetHeight(),
-                 scale);
+    recording_buffer_.push_back(captured_buffer);
+    // write_buffer(captured_buffer.data(), image->GetWidth(), image->GetHeight(),
+    //              scale);
   } else {
     auto captured_buffer = renderer_->CaptureRenderedImage();
     write_buffer(captured_buffer.data(), renderer_->GetWidth(),
                  renderer_->GetHeight(), 1.0f);
+  }
+}
+
+void App::Record(const std::string &file_path) {
+  auto image = accumulation_color_->GetImage();
+  float scale = 1.0f / float(std::max(1u, accumulated_sample_));
+  std::string output_folder = file_path;
+  std::cout << "Recorded " << recording_buffer_.size() << " frames into " << output_folder <<  std::endl;
+  std::string cmd = "mkdir " + output_folder;
+  int result = std::system(cmd.c_str());
+  if (result) {
+    return;
+  }
+  auto write_buffer = [&file_path, this](glm::vec4 *buffer, int width,
+                                         int height, float scale, int index) {
+    if (absl::EndsWith(file_path, ".hdr")) {
+      stbi_write_hdr(file_path.c_str(), width, height, 4,
+                     reinterpret_cast<float *>(buffer));
+    } else {
+      std::vector<uint8_t> buffer24bit(width * height * 3);
+      auto float2u8 = [](float v) {
+        return uint8_t(std::max(0, std::min(255, int(v * 255.0f))));
+      };
+      float inv_gamma = 1.0f / renderer_->GetScene().GetCamera().GetGamma();
+      for (int i = 0; i < width * height; i++) {
+        buffer[i] *= scale;
+        buffer24bit[i * 3] = float2u8(pow(buffer[i].r, inv_gamma));
+        buffer24bit[i * 3 + 1] = float2u8(pow(buffer[i].g, inv_gamma));
+        buffer24bit[i * 3 + 2] = float2u8(pow(buffer[i].b, inv_gamma));
+      }
+      if (absl::EndsWith(file_path, ".png")) {
+        stbi_write_png(file_path.c_str(), width, height, 3, buffer24bit.data(),
+                       width * 3);
+      } else if (absl::EndsWith(file_path, ".jpg") ||
+                 absl::EndsWith(file_path, ".jpeg")) {
+        stbi_write_jpg(file_path.c_str(), width, height, 3, buffer24bit.data(),
+                       100);
+      } else if (absl::EndsWith(file_path, ".png")) {
+        stbi_write_bmp(file_path.c_str(), width, height, 3, buffer24bit.data());
+      } else {
+        stbi_write_png((file_path + "/" + std::to_string(index) + ".png").c_str(),
+         width, height, 3, buffer24bit.data(), width * 3);
+      }
+    }
+  };
+
+  for (size_t i = 0; i < recording_buffer_.size(); i++) {
+    std::vector<glm::vec4> frame_ = recording_buffer_[i];
+    write_buffer(frame_.data(), image->GetWidth(), image->GetHeight(), scale, i);
+  }
+  recording_buffer_.clear();
+  
+  std::filesystem::path currentPath = std::filesystem::current_path();
+  std::filesystem::path relativePath = currentPath / ".." / ".." / ".." / "src" / "sparks" / "app" / "video.py";
+  cmd = "python \"" + relativePath.string() + "\" " + file_path;
+  result = std::system(cmd.c_str());
+  if (result) {
+    std::cout << "Recording failed." << std::endl;
+  } else {
+    std::cout << "Recorded successfully." << std::endl;
   }
 }
 

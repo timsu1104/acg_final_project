@@ -7,6 +7,7 @@
 #include "uniform_objects.glsl"
 #include "material.glsl"
 #include "constants.glsl"
+#include "pdf.glsl"
 // clang-format on
 
 layout(binding = 0) uniform accelerationStructureEXT scene;
@@ -35,9 +36,9 @@ layout(binding = 9) uniform sampler2D[] texture_samplers;
 layout(location = 0) rayPayloadEXT RayPayload ray_payload;
 
 // clang-format off
-#include "random.glsl"
 #include "vertex.glsl"
 #include "hit_record.glsl"
+#include "random.glsl"
 // clang-format on
 
 vec3 SampleEnvmap(vec3 direction) {
@@ -67,9 +68,32 @@ void TraceRay(vec3 origin, vec3 direction) {
   hit_record = GetHitRecord(ray_payload, origin, direction);
 }
 
-// clang-format off
-#include "pdf.glsl"
-// clang-format on
+Onb Onb_from_z(vec3 z_dir) {
+  Onb ret;
+  ret._w = normalize(z_dir);
+  ret._u = normalize(cross(z_dir, (abs(z_dir.x) > 0.1 ? vec3(0.0, 1.0, 0.0): vec3(1.0, 0.0, 0.0))));
+  ret._v = normalize(cross(z_dir, ret._u));
+  return ret;
+}
+
+vec3 local(Onb uvw, float x, float y, float z) {
+  return x * uvw._u + y * uvw._v + z * uvw._w;
+}
+
+vec3 Generate_Cos(CosineHemispherePdf pdf, vec3 origin) {
+  float u1 = RandomFloat();
+  float u2 = RandomFloat();
+  float z_r = sqrt(1.0 - u1);
+  float z = sqrt(u1);
+  float phi = 2.0 * PI * u2;
+  vec3 ret = local(pdf.uvw, z_r * cos(phi), z_r * sin(phi), z);
+  return ret;
+}
+
+float Value_Cos(CosineHemispherePdf pdf, vec3 direction) {
+  float cos_theta = dot(pdf.uvw._w, direction);
+  return cos_theta < 0.0 ? 0.0 : cos_theta / PI;
+}
 
 float reflectance(float cosine, float ref_idx) {
   float r0 = (1.0 - ref_idx) / (1.0 + ref_idx);
@@ -82,16 +106,6 @@ vec3 SampleRay(vec3 origin, vec3 direction) {
   vec3 throughput = vec3(1.0);
   vec3 l_dir = vec3(0.0);
   const float rate = 0.9;
-
-  uint light_idx;
-  for (light_idx = 0; light_idx < materials.length(); light_idx++)
-    if (materials[light_idx].material_type == MATERIAL_TYPE_EMISSION)
-      break;
-
-  LightPdf light_sampler;
-  light_sampler.index = light_idx;
-  light_sampler.area = GetArea(light_idx);
-
   for (int b = 0; b < guo.num_bounces; b++) {
     TraceRay(origin, direction);
 
@@ -105,67 +119,41 @@ vec3 SampleRay(vec3 origin, vec3 direction) {
         break;
       }
       
-      origin = hit_record.position;
-      vec3 albedo = material.albedo_color;
-      vec3 normal = hit_record.normal;
-      if (dot(normal, direction) > 0.0) {
-        normal = -normal;
-      }
-      
       if (material.material_type == MATERIAL_TYPE_LAMBERTIAN) {
+        origin = hit_record.position;
+        vec3 albedo = material.albedo_color;
+        vec3 normal = hit_record.normal;
+        if (dot(normal, direction) > 0.0) {
+          normal = -normal;
+        }
         if (material.albedo_texture_id >= 0) {
           albedo *= vec3(texture(texture_samplers[material.albedo_texture_id],
                                    hit_record.tex_coord));
         }
 
-        light_sampler.normal_ = normal;
-        vec3 light_dir = Generate_Light(light_sampler, origin);
-        if (light_dir != vec3(0.0)) {
-          float light_pdf = Value_Light(light_sampler, origin, light_dir);
-          if (light_pdf > 0.0) {
-            vec3 light_color = materials[light_idx].emission * materials[light_idx].emission_strength;
-            float scatter = max(0.0, dot(normal, direction) / PI);
-            l_dir += 
-              throughput
-                * albedo
-                * scatter
-                * light_color
-                / light_pdf;
-          }
-        }
-
         CosineHemispherePdf brdf_sample;
         brdf_sample.uvw = Onb_from_z(normal);
-        
-        // Importance Sampling from Lambertian BRDF
-        // direction = Generate_Cos(brdf_sample, origin);
-        // float pdf = Value_Cos(brdf_sample, direction);
-        
-        // Importance Sampling from Light
-        direction = Generate_Light(light_sampler, origin);
-        float pdf = Value_Light(light_sampler, origin, direction);
-
-        // Multiple Importance Sampling
-        // MixturePdf mixpdf;
-        // mixpdf.light_ = light_sampler;
-        // mixpdf.cosine_ = brdf_sample;
-        // mixpdf.prob = 0.2;
-        // direction = Generate_Mix(mixpdf, origin);
-        // float pdf = Value_Mix(mixpdf, origin, direction);
-
+        direction = Generate_Cos(brdf_sample, origin);
+        float pdf = Value_Cos(brdf_sample, direction);
         float scatter = max(0.0, dot(normal, direction) / PI);
         throughput *= albedo * scatter / pdf / rate;
       }
 
       if (material.material_type == MATERIAL_TYPE_SPECULAR) {
+        origin = hit_record.position;
         direction = reflect(direction, hit_record.normal);
-        throughput *= albedo;
+        throughput *= material.albedo_color;
       }
 
       if (material.material_type == MATERIAL_TYPE_TRANSMISSIVE) {
+        origin = hit_record.position;
         float ir = 1.33;
         float refraction_ratio = 1.0 / ir;
-        throughput *= albedo;
+        throughput *= material.albedo_color;
+        vec3 normal = hit_record.normal;
+        if (dot(normal, direction) < 0.0) {
+          normal = normal;
+        }
         float cosine = dot(normal, direction) / (length(normal) * length(direction));
         float sine = sqrt(1.0 - cosine * cosine);
         if (reflectance(cosine, refraction_ratio) > RandomFloat()) {
