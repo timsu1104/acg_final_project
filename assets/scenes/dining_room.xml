@@ -1,0 +1,474 @@
+<?xml version="1.0" encoding="utf-8"?>
+<scene>
+    <camera>
+		<transform type="lookat">
+            <eye value="-2.5 1.5 0"/>
+            <center value="2.0 0.2 0"/>
+            <up value="0.0 1.0 0.0"/>
+        </transform>
+	</camera>
+
+    <model type="obj">
+		<filename value="../../meshes/book1.obj"/>
+
+		<material type="lambertian">
+			<albedo value="1 1 1"/>
+			<albedo_texture value="../../textures/book1.jpg"/>
+		</material>
+	</model>
+
+    <model type="obj">
+		<filename value="../../meshes/book2.obj"/>
+
+		<material type="lambertian">
+			<albedo value="1 1 1"/>
+			<albedo_texture value="../../textures/book2.jpg"/>
+		</material>
+	</model>
+
+    <model type="obj">
+		<filename value="../../meshes/book3.obj"/>
+
+		<material type="lambertian">
+			<albedo value="1 1 1"/>
+			<albedo_texture value="../../textures/book3.jpg"/>
+		</material>
+	</model>
+
+    <model type="obj">
+		<filename value="../../meshes/book4.obj"/>
+
+		<material type="lambertian">
+			<albedo value="1 1 1"/>
+			<albedo_texture value="../../textures/book4.jpg"/>
+		</material>
+	</model>
+
+    <model type="obj">
+		<filename value="../../meshes/book5.obj"/>
+
+		<material type="lambertian">
+			<albedo value="1 1 1"/>
+			<albedo_texture value="../../textures/book5.jpg"/>
+		</material>
+	</model>
+
+    <model type="obj">
+		<filename value="../../meshes/book6.obj"/>
+
+		<material type="lambertian">
+			<albedo value="1 1 1"/>
+			<albedo_texture value="../../textures/book6.jpg"/>
+		</material>
+	</model>
+
+    <model type="obj">
+		<filename value="../../meshes/book7.obj"/>
+
+		<material type="lambertian">
+			<albedo value="1 1 1"/>
+			<albedo_texture value="../../textures/book7.jpg"/>
+		</material>
+	</model>
+
+    <model type="obj">
+		<filename value="../../meshes/book8.obj"/>
+
+		<material type="lambertian">
+			<albedo value="1 1 1"/>
+			<albedo_texture value="../../textures/book8.jpg"/>
+		</material>
+	</model>
+
+    <model type="obj">
+		<filename value="../../meshes/book9.obj"/>
+
+		<material type="lambertian">
+			<albedo value="1 1 1"/>
+			<albedo_texture value="../../textures/book9.jpg"/>
+		</material>
+	</model>
+
+    <model type="obj">
+		<filename value="../../meshes/book10.obj"/>
+
+		<material type="lambertian">
+			<albedo value="1 1 1"/>
+			<albedo_texture value="../../textures/book10.jpg"/>
+		</material>
+	</model>
+
+    <model type="obj">
+		<filename value="../../meshes/book11.obj"/>
+
+		<material type="lambertian">
+			<albedo value="1 1 1"/>
+			<albedo_texture value="../../textures/book11.jpg"/>
+		</material>
+	</model>
+
+    <model type="obj">
+		<filename value="../../meshes/book12.obj"/>
+
+		<material type="lambertian">
+			<albedo value="1 1 1"/>
+			<albedo_texture value="../../textures/book12.jpg"/>
+		</material>
+	</model>
+
+    <model type="obj">
+		<filename value="../../meshes/book13.obj"/>
+
+		<material type="lambertian">
+			<albedo value="1 1 1"/>
+			<albedo_texture value="../../textures/book13.jpg"/>
+		</material>
+	</model>
+
+    <model type="obj">
+		<filename value="../../meshes/book14.obj"/>
+
+		<material type="lambertian">
+			<albedo value="1 1 1"/>
+			<albedo_texture value="../../textures/book14.jpg"/>
+		</material>
+	</model>
+
+    <model type="obj">
+		<filename value="../../meshes/book15.obj"/>
+
+		<material type="lambertian">
+			<albedo value="1 1 1"/>
+			<albedo_texture value="../../textures/book15.jpg"/>
+		</material>
+	</model>
+
+    <model type="obj">
+		<filename value="../../meshes/book16.obj"/>
+
+		<material type="lambertian">
+			<albedo value="1 1 1"/>
+			<albedo_texture value="../../textures/book16.jpg"/>
+		</material>
+	</model>
+
+    <model type="obj">
+		<filename value="../../meshes/book17.obj"/>
+
+		<material type="lambertian">
+			<albedo value="1 1 1"/>
+			<albedo_texture value="../../textures/book17.jpg"/>
+		</material>
+	</model>
+
+    <model type="obj">
+		<filename value="../../meshes/book18.obj"/>
+
+		<material type="lambertian">
+			<albedo value="1 1 1"/>
+			<albedo_texture value="../../textures/book18.jpg"/>
+		</material>
+	</model>
+
+    <model type="obj">
+		<filename value="../../meshes/bucket1.obj"/>
+
+		<material type="lambertian">
+			<albedo value="0.40392157 0.32941176 0.2627451"/>
+			<albedo_texture value="../../textures/box.jpg"/>
+		</material>
+	</model>
+
+    <model type="obj">
+		<filename value="../../meshes/bucket2.obj"/>
+
+		<material type="lambertian">
+			<albedo value="0.40392157 0.32941176 0.2627451"/>
+			<albedo_texture value="../../textures/box.jpg"/>
+		</material>
+	</model>
+
+    <model type="obj">
+		<filename value="../../meshes/bucket3.obj"/>
+
+		<material type="lambertian">
+			<albedo value="0.40392157 0.32941176 0.2627451"/>
+			<albedo_texture value="../../textures/box.jpg"/>
+		</material>
+	</model>
+
+    <model type="obj">
+		<filename value="../../meshes/bucket4.obj"/>
+
+		<material type="lambertian">
+			<albedo value="0.40392157 0.32941176 0.2627451"/>
+			<albedo_texture value="../../textures/box.jpg"/>
+		</material>
+	</model>
+
+    <!-- <model type="obj">
+		<filename value="../../meshes/chair_legs.obj"/>
+
+		<material type="lambertian">
+			<albedo value="0.953 0.867 0.667"/>
+		</material>
+	</model>
+
+    <model type="obj">
+		<filename value="../../meshes/chair_nuts.obj"/>
+
+		<material type="lambertian">
+			<albedo value="0.953 0.867 0.667"/>
+		</material>
+	</model>
+
+    <model type="obj">
+		<filename value="../../meshes/chair_rubber_pegs.obj"/>
+
+		<material type="lambertian">
+			<albedo value="0.953 0.867 0.667"/>
+		</material>
+	</model>
+
+    <model type="obj">
+		<filename value="../../meshes/chair_seats.obj"/>
+
+		<material type="lambertian">
+			<albedo value="0.953 0.867 0.667"/>
+		</material>
+	</model> -->
+
+    <model type="obj">
+		<filename value="../../meshes/cupboards.obj"/>
+
+		<material type="lambertian">
+			<albedo value="1 1 1"/>
+		</material>
+	</model>
+
+    <model type="obj">
+		<filename value="../../meshes/floor_dining.obj"/>
+
+		<material type="lambertian">
+			<albedo value="0.40392157 0.32941176 0.2627451"/>
+			<albedo_texture value="../../textures/floor.jpg"/>
+		</material>
+	</model>
+
+    <model type="obj">
+		<filename value="../../meshes/floor_frame.obj"/>
+
+		<material type="lambertian">
+			<albedo value="0.40392157 0.32941176 0.2627451"/>
+			<albedo_texture value="../../textures/floor.jpg"/>
+		</material>
+	</model>
+
+     <model type="obj">
+		<filename value="../../meshes/frame1.obj"/>
+
+		<material type="lambertian">
+			<albedo value="1 1 1"/>
+		</material>
+	</model>
+
+    <model type="obj">
+		<filename value="../../meshes/frame2.obj"/>
+
+		<material type="lambertian">
+			<albedo value="1 1 1"/>
+		</material>
+	</model>
+
+    <model type="obj">
+		<filename value="../../meshes/frontlight.obj"/>
+
+        <material type="emission">
+            <emission value="1.0 1.0 1.0"/>
+            <emission_strength value="0.5"/>
+        </material>
+	</model>
+
+    <model type="obj">
+		<filename value="../../meshes/frontlight2.obj"/>
+
+        <material type="emission">
+            <emission value="1.0 1.0 1.0"/>
+            <emission_strength value="0.5"/>
+        </material>
+	</model>
+
+    <model type="obj">
+		<filename value="../../meshes/left_front_wall.obj"/>
+
+		<material type="lambertian">
+			<albedo value="1 1 1"/>
+		</material>
+	</model>
+
+    <model type="obj">
+		<filename value="../../meshes/light1.obj"/>
+
+
+        <material type="emission">
+            <emission value="1.0 1.0 1.0"/>
+            <emission_strength value="5.0"/>
+        </material>
+	</model>
+
+    <model type="obj">
+		<filename value="../../meshes/light2.obj"/>
+
+        <material type="emission">
+            <emission value="1.0 1.0 1.0"/>
+            <emission_strength value="5.0"/>
+        </material>
+	</model>
+
+    <model type="obj">
+		<filename value="../../meshes/light3.obj"/>
+
+        <material type="emission">
+            <emission value="1.0 1.0 1.0"/>
+            <emission_strength value="5.0"/>
+        </material>
+	</model>
+
+    <model type="obj">
+		<filename value="../../meshes/picture1.obj"/>
+
+		<material type="lambertian">
+			<albedo value="1 1 1"/>
+			<albedo_texture value="../../textures/painting.jpg"/>
+		</material>
+	</model>
+
+    <model type="obj">
+		<filename value="../../meshes/picture2.obj"/>
+
+		<material type="lambertian">
+			<albedo value="1 1 1"/>
+			<albedo_texture value="../../textures/painting.jpg"/>
+		</material>
+	</model>
+
+    <model type="obj">
+		<filename value="../../meshes/plant.obj"/>
+
+		<material type="lambertian">
+			<albedo value="0.36078431 0.36862745 0.37254902"/>
+		</material>
+	</model>
+
+    <model type="obj">
+		<filename value="../../meshes/rightwall.obj"/>
+
+		<material type="lambertian">
+			<albedo value="0.18431373 0.24705882 0.20392157"/>
+		</material>
+	</model>
+
+    <model type="obj">
+		<filename value="../../meshes/shelf_book1.obj"/>
+
+		<material type="lambertian">
+			<albedo value="1 1 1"/>
+			<albedo_texture value="../../textures/shelfbook1.jpg"/>
+		</material>
+	</model>
+
+    <model type="obj">
+		<filename value="../../meshes/shelf_book2.obj"/>
+
+		<material type="lambertian">
+			<albedo value="1 1 1"/>
+			<albedo_texture value="../../textures/shelfbook1.jpg"/>
+		</material>
+	</model>
+
+    <!-- <model type="obj">
+		<filename value="../../meshes/shelf_objects.obj"/>
+
+		<material type="lambertian">
+			<albedo value="0.953 0.867 0.667"/>
+		</material>
+	</model>
+
+    <model type="obj">
+		<filename value="../../meshes/shelf_objects2.obj"/>
+
+		<material type="lambertian">
+			<albedo value="0.953 0.867 0.667"/>
+		</material>
+	</model> -->
+
+    <model type="obj">
+		<filename value="../../meshes/shelf.obj"/>
+
+		<material type="lambertian">
+			<albedo value="1 1 1"/>
+		</material>
+	</model>
+
+    <model type="obj">
+		<filename value="../../meshes/table_glass.obj"/>
+
+		<material type="specular">
+			<albedo value="0.43137255 0.47058824 0.47843137"/>
+		</material>
+	</model>
+
+    <model type="obj">
+		<filename value="../../meshes/table_legs.obj"/>
+
+		<material type="lambertian">
+			<albedo value="0.71764706 0.65098039 0.61960784"/>
+		</material>
+	</model>
+
+    <model type="obj">
+		<filename value="../../meshes/toplight.obj"/>
+
+        <material type="emission">
+            <emission value="1.0 1.0 1.0"/>
+            <emission_strength value="0.5"/>
+        </material>
+	</model>
+
+    <model type="obj">
+		<filename value="../../meshes/vase.obj"/>
+
+		<material type="lambertian">
+			<albedo value="0.67843137 0.65882353 0.64705882"/>
+		</material>
+	</model>
+
+	<model type="sphere">
+		<center value="0.0 0.0 0.0"/>
+		<radius value="0.1"/>
+
+		<transform type="translate" value="-0.3 0.878 -0.5"/>
+
+		<material type="lambertian">
+			<albedo value="0.6 0.1 0.1"/>
+		</material>
+
+		<velocity value="0.0 0.0 0.5"/>
+		<!-- <angular value="0.0 50.0 0.0"/> -->
+	</model>
+
+	<model type="sphere">
+		<center value="0.0 0.0 0.0"/>
+		<radius value="0.1"/>
+
+		<transform type="translate" value="-0.3 0.878 0.5"/>
+
+		<material type="lambertian">
+			<albedo value="0.1 0.6 0.1"/>
+		</material>
+
+		<velocity value="0.0 0.0 -0.5"/>
+		<!-- <angular value="0.0 50.0 0.0"/> -->
+	</model>
+
+</scene>

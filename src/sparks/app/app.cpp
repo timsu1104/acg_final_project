@@ -237,26 +237,30 @@ void App::OnUpdate(uint32_t ms) {
     }
   }
   if (app_settings_.hardware_renderer) {
-   if (refresh_ < ms) {
-      reset_accumulation_ = true;
-      if (recording_) {
-        uint32_t current_sample = accumulated_sample_;
-        auto tt = std::chrono::system_clock::to_time_t(
-            std::chrono::system_clock::now());
-        auto now = std::make_unique<std::tm>();
-        localtime_s(now.get(), &tt);
-        Capture("screenshot_" + std::to_string(now->tm_year + 1900) + "_" +
-                std::to_string(now->tm_mon) + "_" + std::to_string(now->tm_mday) +
-                "_" + std::to_string(now->tm_hour) + "_" +
-                std::to_string(now->tm_min) + "_" + std::to_string(now->tm_sec) +
-                "_" + std::to_string(current_sample) + "spp.png");
-        }
-      refresh_ = 1000;
-    } else {
-      refresh_ -= ms;
-    } 
-    // reset_accumulation_ = true;
-    UpdateTopLevelAccelerationStructure(ms);
+    if (recording_ || !disable_instant_update_) {
+      if (refresh_ < ms) {
+        reset_accumulation_ = true;
+        if (recording_) {
+          uint32_t current_sample = accumulated_sample_;
+          auto tt = std::chrono::system_clock::to_time_t(
+              std::chrono::system_clock::now());
+          auto now = std::make_unique<std::tm>();
+          localtime_s(now.get(), &tt);
+          Capture("screenshot_" + std::to_string(now->tm_year + 1900) + "_" +
+                  std::to_string(now->tm_mon) + "_" + std::to_string(now->tm_mday) +
+                  "_" + std::to_string(now->tm_hour) + "_" +
+                  std::to_string(now->tm_min) + "_" + std::to_string(now->tm_sec) +
+                  "_" + std::to_string(current_sample) + "spp.png");
+          }
+        refresh_ = 2000;
+      } else {
+        refresh_ -= ms;
+      } 
+      UpdateTopLevelAccelerationStructure(ms);
+    }
+    else {
+      UpdateTopLevelAccelerationStructure(0);
+    }
     glfwPollEvents();
   }
   if (rebuild_ray_tracing_pipeline_) {
