@@ -1,5 +1,7 @@
 #include "sparks/renderer/path_tracer.h"
 
+#include "sparks/assets/hit_record.h"
+#include "sparks/assets/material.h"
 #include "sparks/assets/pdf.h"
 #include "sparks/util/util.h"
 #include "glm/gtc/random.hpp"
@@ -7,6 +9,19 @@
 #include "glm/gtc/matrix_transform.hpp"
 
 namespace sparks {
+
+inline static float InScatter(glm::vec3 start, glm::vec3 rd, glm::vec3 lightPos, float d)
+{
+  // Ack: https://zhuanlan.zhihu.com/p/21425792
+    glm::vec3 q = start - lightPos;
+    float b = glm::dot(rd, q);
+    float c = glm::dot(q, q);
+    float iv = 1.0f / sqrt(c - b*b);
+    float l = iv * (atan( (d + b) * iv) - atan( b*iv ));
+
+    return l;
+}
+
 PathTracer::PathTracer(const RendererSettings *render_settings,
                        const Scene *scene) {
   render_settings_ = render_settings;
@@ -53,12 +68,19 @@ glm::vec3 PathTracer::SampleRay(glm::vec3 origin,
   glm::vec3 radiance{0.0f};
   glm::vec3 l_dir{0.0f};
   HitRecord hit_record;
+  HitRecord hit_record_iso;
   const float rate = 0.9;
+  const int soft_shadow_sample = 5;
   const int max_bounce = render_settings_->num_bounces;
   std::mt19937 rd(sample ^ x ^ y ^ rand());
   std::uniform_real_distribution<float> dist(0.0f, 1.0f);
   for (int i = 0; i < max_bounce; i++) {
-    auto t = scene_->TraceRay(origin, direction, 1e-3f, 1e4f, &hit_record);
+    auto t = scene_->TraceRay(origin, direction, 1e-3f, 1e4f, &hit_record, true);
+    auto t_iso = scene_->TraceRay(origin, direction, 1e-3f, 1e4f, &hit_record_iso, false);
+    if (hit_record_iso.hit_entity_id != -1 && scene_->GetEntity(hit_record_iso.hit_entity_id).GetMaterial().material_type != MATERIAL_TYPE_ISOTROPIC && t != t_iso) {
+    auto t = scene_->TraceRay(origin, direction, 1e-3f, 1e4f, &hit_record, true);
+    auto t_iso = scene_->TraceRay(origin, direction, 1e-3f, 1e4f, &hit_record_iso, false);
+    }
     if (t > 0.0f) {
       auto &material =
           scene_->GetEntity(hit_record.hit_entity_id).GetMaterial();
@@ -66,38 +88,71 @@ glm::vec3 PathTracer::SampleRay(glm::vec3 origin,
         radiance += throughput * material.emission * material.emission_strength;
         break;
       }
-      
-      if (material.material_type == MATERIAL_TYPE_LAMBERTIAN) {
-        origin = hit_record.position;
-        glm::vec3 albedo = material.albedo_color;
-        glm::vec3 normal = hit_record.normal;
-        if (glm::dot(normal, direction) > 0.0f) {
-          normal = -normal;
+
+      glm::vec3 albedo = material.albedo_color;
+      glm::vec3 normal = hit_record.normal;
+      if (glm::dot(normal, direction) > 0.0f) {
+        normal = -normal;
+      }
+
+      if (t != t_iso) {
+        auto &entity = scene_->GetEntity(hit_record_iso.hit_entity_id);
+        auto &iso_material = entity.GetMaterial();
+        assert(iso_material.material_type == MATERIAL_TYPE_ISOTROPIC);
+        float random_float = dist(rd);
+        float scatter_distance = - glm::log(random_float) / iso_material.density;
+        HitRecord tmax_hit_record, tmin_hit_record;
+        auto model = entity.GetModel();
+        float light_t_max = model->TraceRay(origin, direction, 1e-3f, &tmax_hit_record, true);
+        float light_t_min = model->TraceRay(origin, direction, -1e4f, &tmin_hit_record, false);
+        assert(light_t_max >= light_t_min);
+        if (light_t_min <= 0) { // We are inside the object
+          light_t_min = 0;
         }
+        float distance = glm::distance(tmax_hit_record.position, tmin_hit_record.position);
+
+        if (scatter_distance < distance) {
+          origin = origin + scatter_distance * direction;
+          direction = glm::sphericalRand(1.0f);
+
+          // Volumetric Lighting
+          radiance += throughput * iso_material.emission * iso_material.emission_strength * InScatter(origin, direction, tmin_hit_record.position, distance);
+          throughput *= albedo;
+          continue;
+        }
+      }
+
+      if (material.material_type == MATERIAL_TYPE_LAMBERTIAN) {
+        
+        origin = hit_record.position;
         if (material.albedo_texture_id >= 0) {
           albedo *= glm::vec3{
             scene_->GetTextures()[material.albedo_texture_id].Sample(hit_record.tex_coord)
           };
         }
-        
-        // direct light
+
+        // direct light (soft shadow)
         LightPdf direct_light_sampler(normal, scene_);
-        glm::vec3 light_dir = direct_light_sampler.Generate(origin, rd);
-        if (light_dir != glm::zero<glm::vec3>()) {
-          auto light_pdf = direct_light_sampler.Value(origin, light_dir);
-          if (light_pdf > 0) {
-            auto &light_material = direct_light_sampler.GetMaterial();
-            auto light_color = light_material.emission * light_material.emission_strength;
-            float scatter = std::max(0.f, glm::dot(normal, light_dir) / glm::pi<float>());
-            l_dir += 
-              throughput
-                * albedo
-                * scatter
-                * light_color
-                / light_pdf;
+        glm::vec3 light(0.0f);
+        for (int k=0; k < soft_shadow_sample;k++) {
+            glm::vec3 light_dir = direct_light_sampler.Generate(origin, rd);
+          if (light_dir != glm::zero<glm::vec3>()) {
+            auto light_pdf = direct_light_sampler.Value(origin, light_dir);
+            if (light_pdf > 0) {
+              auto &light_material = direct_light_sampler.GetMaterial();
+              auto light_color = light_material.emission * light_material.emission_strength;
+              float scatter = std::max(0.f, glm::dot(normal, light_dir) / glm::pi<float>());
+              light += 
+                throughput
+                  * albedo
+                  * scatter
+                  * light_color
+                  / light_pdf;
+            }
           }
         }
-        
+        l_dir += light / (const float)soft_shadow_sample;
+
         // Importance Sampling based on Lambertian BRDF
         // CosineHemispherePdf sampler(normal, scene_);
         
@@ -118,20 +173,16 @@ glm::vec3 PathTracer::SampleRay(glm::vec3 origin,
         float scatter = std::max(0.f, glm::dot(normal, direction) / glm::pi<float>());
         throughput *= albedo * scatter / pdf / rate;
       }
-      if (material.material_type == MATERIAL_TYPE_SPECULAR) {
+      else if (material.material_type == MATERIAL_TYPE_SPECULAR) {
         origin = hit_record.position;
         direction = glm::reflect(direction, hit_record.normal);
-        throughput *= material.albedo_color;
+        throughput *= albedo;
       }
-      if (material.material_type == MATERIAL_TYPE_TRANSMISSIVE) {
+      else if (material.material_type == MATERIAL_TYPE_TRANSMISSIVE) {
         origin = hit_record.position;
         float ir = 1.33f;
         float refraction_ratio = 1.0f / ir;
-        throughput *= material.albedo_color;
-        glm::vec3 normal = hit_record.normal;
-        if (glm::dot(normal, direction) < 0.0f) {
-          normal = -normal;
-        }
+        throughput *= albedo;
         float cosine = glm::dot(normal, direction) / (glm::length(normal) * glm::length(direction));
         float sine = glm::sqrt(1.0f - cosine * cosine);
         if (reflectance(cosine, refraction_ratio) > dist(rd)) {
@@ -159,8 +210,20 @@ glm::vec3 PathTracer::SampleRay(glm::vec3 origin,
           }
         }
       }
-      if (material.material_type == MATERIAL_TYPE_PRINCIPLED) {
+      else if (material.material_type == MATERIAL_TYPE_PRINCIPLED) {
+        origin = hit_record.position;
         // Disney's principled BSDF
+
+        // diffuse
+        // f_basediffuse = 
+
+        // sheen
+
+        // metal 
+
+        // clearcoat
+
+        // glass
 
       } 
       // else {

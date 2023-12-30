@@ -21,7 +21,8 @@ class AcceleratedMesh : public Mesh {
   float TraceRay(const glm::vec3 &origin,
                  const glm::vec3 &direction,
                  float t_min,
-                 HitRecord *hit_record) const override;
+                 HitRecord *hit_record, 
+                 bool max_flag=false) const override;
   void BuildAccelerationStructure();
 
  private:

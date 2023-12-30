@@ -15,7 +15,8 @@ class Model {
   [[nodiscard]] virtual float TraceRay(const glm::vec3 &origin,
                                        const glm::vec3 &direction,
                                        float t_min,
-                                       HitRecord *hit_record) const = 0;
+                                       HitRecord *hit_record,
+                                       bool max_flag=false) const = 0;
   [[nodiscard]] virtual AxisAlignedBoundingBox GetAABB(
       const glm::mat4 &transform) const = 0;
   [[nodiscard]] virtual std::vector<Vertex> GetVertices() const = 0;

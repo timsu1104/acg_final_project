@@ -70,7 +70,8 @@ class Scene {
                  const glm::vec3 &direction,
                  float t_min,
                  float t_max,
-                 HitRecord *hit_record) const;
+                 HitRecord *hit_record, 
+                 bool ignore_isotropic=false) const;
 
   BVHNode* buildBVH(std::vector<std::pair<Entity*, int>> entities_);
   bool TextureCombo(const char *label, int *current_item) const;
