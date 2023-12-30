@@ -526,7 +526,7 @@ void App::UpdateImGui() {
       ImGui::Separator();
       static int current_item = 0;
       std::vector<const char *> material_types = {
-          "Lambertian", "Specular", "Transmissive", "Principled", "Emission", "Isotropic", "Microfacet"};
+          "Lambertian", "Specular", "Transmissive", "Principled", "Emission", "Volume", "Microfacet"};
       Material &material = scene.GetEntity(selected_entity_id_).GetMaterial();
       reset_accumulation_ |=
           ImGui::Combo("Type", reinterpret_cast<int *>(&material.material_type),
@@ -544,8 +544,9 @@ void App::UpdateImGui() {
                              0.0f, 1e5f, "%.3f", ImGuiSliderFlags_Logarithmic);
       reset_accumulation_ |=
           ImGui::SliderFloat("Alpha", &material.alpha, 0.0f, 1.0f, "%.3f");
-      reset_accumulation_ |=
-          ImGui::SliderFloat("Density", &material.density, 0.0f, 1.0f, "%.3f");
+      reset_accumulation_ |= ImGui::ColorEdit3(
+          "Attenuation", &material.attenuation[0],
+          ImGuiColorEditFlags_PickerHueWheel | ImGuiColorEditFlags_Float);
     }
 
 #if !defined(NDEBUG)

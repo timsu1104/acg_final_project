@@ -77,7 +77,7 @@ glm::vec3 PathTracer::SampleRay(glm::vec3 origin,
   for (int i = 0; i < max_bounce; i++) {
     auto t = scene_->TraceRay(origin, direction, 1e-3f, 1e4f, &hit_record, true);
     auto t_iso = scene_->TraceRay(origin, direction, 1e-3f, 1e4f, &hit_record_iso, false);
-    if (hit_record_iso.hit_entity_id != -1 && scene_->GetEntity(hit_record_iso.hit_entity_id).GetMaterial().material_type != MATERIAL_TYPE_ISOTROPIC && t != t_iso) {
+    if (hit_record_iso.hit_entity_id != -1 && scene_->GetEntity(hit_record_iso.hit_entity_id).GetMaterial().material_type != MATERIAL_TYPE_VOLUME && t != t_iso) {
     auto t = scene_->TraceRay(origin, direction, 1e-3f, 1e4f, &hit_record, true);
     auto t_iso = scene_->TraceRay(origin, direction, 1e-3f, 1e4f, &hit_record_iso, false);
     }
@@ -98,9 +98,9 @@ glm::vec3 PathTracer::SampleRay(glm::vec3 origin,
       if (t != t_iso) {
         auto &entity = scene_->GetEntity(hit_record_iso.hit_entity_id);
         auto &iso_material = entity.GetMaterial();
-        assert(iso_material.material_type == MATERIAL_TYPE_ISOTROPIC);
+        assert(iso_material.material_type == MATERIAL_TYPE_VOLUME);
         float random_float = dist(rd);
-        float scatter_distance = - glm::log(random_float) / iso_material.density;
+        float scatter_distance = - glm::log(random_float) / iso_material.attenuation[rand() % 3];
         HitRecord tmax_hit_record, tmin_hit_record;
         auto model = entity.GetModel();
         float light_t_max = model->TraceRay(origin, direction, 1e-3f, &tmax_hit_record, true);

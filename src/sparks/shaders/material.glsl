@@ -4,10 +4,10 @@ struct Material {
   int albedo_texture_id; // 12
   vec3 emission; // 16
   int normal_map_id; // 28
-  float emission_strength; // 32
-  float alpha; // 36
-  float density; // 40
-  uint material_type; // 44
+  vec3 attenuation; // 32
+  float emission_strength; // 44
+  float alpha; // 48
+  uint material_type; // 52
 };
 
 #define MATERIAL_TYPE_LAMBERTIAN 0
@@ -15,5 +15,5 @@ struct Material {
 #define MATERIAL_TYPE_TRANSMISSIVE 2
 #define MATERIAL_TYPE_PRINCIPLED 3
 #define MATERIAL_TYPE_EMISSION 4
-#define MATERIAL_TYPE_ISOTROPIC 5
+#define MATERIAL_TYPE_VOLUME 5
 #define MATERIAL_TYPE_MICROFACET 6

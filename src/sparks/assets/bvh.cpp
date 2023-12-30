@@ -12,7 +12,7 @@ namespace sparks {
         if (!aabb.IsIntersect(origin, direction, t_min, t_max)) {
             return result;
         }
-        if (ignore_isotropic && entity_id != -1 && entity->GetMaterial().material_type == MATERIAL_TYPE_ISOTROPIC) {
+        if (ignore_isotropic && entity_id != -1 && entity->GetMaterial().material_type == MATERIAL_TYPE_VOLUME) {
             assert(entity_id == 6);
             return result;
         }
