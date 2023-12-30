@@ -14,7 +14,8 @@ std::unordered_map<std::string, MaterialType> material_name_map{
     {"transmissive", MATERIAL_TYPE_TRANSMISSIVE},
     {"principled", MATERIAL_TYPE_PRINCIPLED},
     {"emission", MATERIAL_TYPE_EMISSION}, 
-    {"isotropic", MATERIAL_TYPE_ISOTROPIC}};
+    {"isotropic", MATERIAL_TYPE_ISOTROPIC},
+    {"microfacet", MATERIAL_TYPE_MICROFACET}};
 }
 
 Material::Material(Scene *scene, const tinyxml2::XMLElement *material_element)

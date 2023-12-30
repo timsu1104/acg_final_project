@@ -75,3 +75,48 @@ float Value_Mix(MixturePdf pdf, vec3 origin, vec3 direction) {
   float brdf_pdf = Value_Cos(pdf.cosine_, direction);
   return pdf.prob * light_pdf + (1.0 - pdf.prob) * brdf_pdf;
 }
+
+float DistributionGGX(vec3 n, vec3 h, float roughness) {
+  float a = roughness * roughness, a2 = a * a;
+  float nh = max(dot(n, h), 0.0f), nh2 = nh * nh;
+  float div = (nh2 * (a2 - 1.0) + 1.0);
+  div = PI * div * div;
+  return a2 / max(div, 1e-5);
+}
+
+float geometrySchlickGGX(float nv, float k) {
+  float div = nv * (1.0 - k) + k;
+  return nv / div;
+}
+
+float geometrySmith(vec3 n, vec3 v, vec3 l, float roughness) {
+  float r = (roughness + 1.0);
+  float k = (r * r) / 8.0;
+  float nv = max(dot(n, v), 0.0);
+  float nl = max(dot(n, l), 0.0);
+  float ggx2 = geometrySchlickGGX(nv, k);
+  float ggx1 = geometrySchlickGGX(nl, k);
+  return ggx1 * ggx2;
+}
+
+void fresnel(vec3 I, vec3 N, float ior, out float kr) {
+  float cosi = dot(I, N);
+  float etai = 1;
+  float etat = ior;
+  if (cosi > 0) {
+    float t = etai;
+    etai = etat;
+    etat = t;
+  }
+  float sint = etai / etat * sqrt(max(0, 1 - cosi * cosi));
+  if (sint >= 1) {
+    kr = 1.0;
+  }
+  else {
+    float cost = sqrt(max(0, 1 - sint * sint));
+    cosi = abs(cosi);
+    float rs = ((etat * cosi) - (etai * cosi)) / ((etat * cosi) + (etai * cost));
+    float rp = ((etai * cosi) - (etat * cost)) / ((etai * cosi) + (etat * cost));
+    kr = (rs * rs) + (rp * rp) / 2;
+  }
+}
