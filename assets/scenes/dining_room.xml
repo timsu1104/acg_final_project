@@ -452,6 +452,7 @@
 		<material type="lambertian">
 			<albedo value="1 1 1"/>
 			<albedo_texture value="../../textures/moon.png"/>
+			<normal_map value="../../textures/NormalMap.png"/>
 		</material>
 
 		<mass value="0.5"/>
@@ -468,6 +469,7 @@
 		<material type="lambertian">
 			<albedo value="1 1 1"/>
 			<albedo_texture value="../../textures/earth.jpg"/>
+			<normal_map value="../../textures/NormalMap.png"/>
 		</material>
 
 		<mass value="0.5"/>
