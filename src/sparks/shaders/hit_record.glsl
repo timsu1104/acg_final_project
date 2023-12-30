@@ -70,3 +70,84 @@ HitRecord GetHitRecord(RayPayload ray_payload, vec3 origin, vec3 direction) {
 
   return hit_record;
 }
+
+HitRecord TraceRayMesh(int idx, vec3 origin, vec3 direction, float t_min, bool max_flag) {
+  HitRecord hit_record;
+  hit_record.hit_entity_id = -1;
+  float result = -1.0;
+
+  uint v_offset = object_infos[idx].vertex_offset;
+  uint i_offset = object_infos[idx].index_offset;
+  uint i_offset_up;
+
+  if (idx == object_infos.length() - 1) {
+    i_offset_up = indices.length();
+  } else {
+    i_offset_up = object_infos[idx + 1].index_offset;
+  }
+  for (uint i = i_offset; i < i_offset_up; i += 3) {
+    uint j = i + 1, k = i + 2;
+    Vertex v0 = GetVertex(v_offset+indices[i]);
+    Vertex v1 = GetVertex(v_offset+indices[j]);
+    Vertex v2 = GetVertex(v_offset+indices[k]);
+
+    mat3 A = mat3(v1.position - v0.position, v2.position - v0.position, -direction);
+    if (abs(determinant(A)) < 1e-9) {
+      continue;
+    }
+    A = inverse(A);
+    vec3 uvt = A * (origin - v0.position);
+    float t = uvt.z;
+    if (t < t_min) {
+      continue;
+    }
+    if (result > 0.0) {
+      if (!max_flag && t > result) {
+        continue;
+      } else if (max_flag && t < result) {
+        continue;
+      }
+    }
+    float u = uvt.x;
+    float v = uvt.y;
+    float w = 1.0 - u - v;
+    vec3 position = origin + t * direction;
+    if (u >= 0.0 && v >= 0.0 && u + v <= 1.0) {
+      result = t;
+      vec3 geometry_normal = normalize(
+          cross(v2.position - v0.position, v1.position - v0.position));
+      if (dot(geometry_normal, direction) < 0.0) {
+        hit_record.hit_entity_id = idx;
+        hit_record.position = position;
+        hit_record.geometry_normal = geometry_normal;
+        hit_record.normal = v0.normal * w + v1.normal * u + v2.normal * v;
+        hit_record.tangent =
+            v0.tangent * w + v1.tangent * u + v2.tangent * v;
+        hit_record.tex_coord =
+            v0.tex_coord * w + v1.tex_coord * u + v2.tex_coord * v;
+        hit_record.front_face = true;
+      } else {
+        hit_record.hit_entity_id = idx;
+        hit_record.position = position;
+        hit_record.geometry_normal = -geometry_normal;
+        hit_record.normal = -(v0.normal * w + v1.normal * u + v2.normal * v);
+        hit_record.tangent =
+            -(v0.tangent * w + v1.tangent * u + v2.tangent * v);
+        hit_record.tex_coord =
+            v0.tex_coord * w + v1.tex_coord * u + v2.tex_coord * v;
+        hit_record.front_face = false;
+      }
+    }
+  }
+  Material mat = materials[hit_record.hit_entity_id];
+  hit_record.base_color =
+      mat.albedo_color *
+      texture(texture_samplers[mat.albedo_texture_id], hit_record.tex_coord)
+          .xyz;
+  hit_record.emission = mat.emission;
+  hit_record.emission_strength = mat.emission_strength;
+  hit_record.alpha = mat.alpha;
+  hit_record.material_type = mat.material_type;
+
+  return hit_record;
+}
