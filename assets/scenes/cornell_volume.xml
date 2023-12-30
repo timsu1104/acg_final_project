@@ -188,11 +188,11 @@
         <index value="23"/>
         <index value="22"/>
 
-        <material type="isotropic">
-            <albedo value="1 0 0"/>
+        <material type="volume">
+            <albedo value="1 1 1"/>
             <emission value="1.0 1.0 0.0"/>
-            <emission_strength value="0.0"/>
-            <density value="0.01"/>
+            <emission_strength value="0.000"/>
+            <attenuation value="3e-5 3e-5 0.0"/>
         </material>
     </model>
 
