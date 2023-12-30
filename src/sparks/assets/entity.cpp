@@ -12,8 +12,8 @@ glm::mat4 &Entity::UpdateTransformMatrix(uint32_t ms) {
     refresh_time_ -= ms;
     return transform_;
   }
-  float delta_time = (3000 + ms - refresh_time_) / 90000.0f;
-  refresh_time_ = 3000;
+  float delta_time = (1000 + ms - refresh_time_) / 60000.0f;
+  refresh_time_ = 1000;
   // float delta_time = ms / 1000.0f;
   glm::vec3 translation = glm::vec3(transform_[3]);
   glm::mat3 rotation = glm::mat3(transform_);
@@ -44,6 +44,28 @@ Material &Entity::GetMaterial() {
 
 const Material &Entity::GetMaterial() const {
   return material_;
+}
+
+const float Entity::GetMass() {
+  return mass_;
+}
+
+void Entity::UpdateVelocity(float v, int k) {
+  if (k == 0) {
+    vel_.x = v;
+  } else if (k == 1){
+    vel_.y = v;
+  } else {
+    vel_.z = v;
+  }
+}
+
+void Entity::UpdateVelocity(glm::vec3 v) {
+  vel_ = v;
+}
+
+glm::vec3 &Entity::GetVelocity() {
+  return vel_;
 }
 
 const std::string &Entity::GetName() const {

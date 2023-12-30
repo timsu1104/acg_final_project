@@ -33,8 +33,9 @@ class App {
   void UpdateCamera();
   void UploadAccumulationResult();
   void UpdateTopLevelAccelerationStructure(uint32_t);
+  void UpdatePhysicsSimulation(std::vector<Entity>&, uint32_t);
 
-  void RebuildRenderNode();
+  void RebuildRenderNode(); 
   void BuildRayTracingPipeline();
 
   Renderer *renderer_{nullptr};
@@ -116,7 +117,8 @@ class App {
   bool gui_pause_{false};
   bool disable_instant_update_{false};
   bool recording_{false};
-  uint32_t refresh_{2000};
+  bool start_simulation_{false};
+  uint32_t refresh_{2000}, refresh_physics_{2000};
   const int fps_ = 30;
   std::vector<std::vector<glm::vec4>> recording_buffer_;
 };

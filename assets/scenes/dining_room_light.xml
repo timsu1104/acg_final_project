@@ -311,7 +311,7 @@
 
 
         <material type="emission">
-            <emission value="1.0 1.0 1.0"/>
+            <emission value="1.0 0.51 0.2"/>
             <emission_strength value="1.5"/>
         </material>
 	</model>
@@ -320,7 +320,7 @@
 		<filename value="../../meshes/light2.obj"/>
 
         <material type="emission">
-            <emission value="1.0 1.0 1.0"/>
+            <emission value="1.0 0.51 0.2"/>
             <emission_strength value="1.5"/>
         </material>
 	</model>
@@ -329,7 +329,7 @@
 		<filename value="../../meshes/light3.obj"/>
 
         <material type="emission">
-            <emission value="1.0 1.0 1.0"/>
+            <emission value="1.0 0.51 0.2"/>
             <emission_strength value="1.5"/>
         </material>
 	</model>
@@ -431,7 +431,7 @@
 
         <material type="emission">
             <emission value="1.0 1.0 1.0"/>
-            <emission_strength value="0.5"/>
+            <emission_strength value="0.0"/>
         </material>
 	</model>
 
@@ -447,7 +447,7 @@
 		<center value="0.0 0.0 0.0"/>
 		<radius value="0.1"/>
 
-		<transform type="translate" value="-0.3 0.878 -0.5"/>
+		<transform type="translate" value="-0.20 0.878 -0.5"/>
 
 		<material type="lambertian">
 			<albedo value="1 1 1"/>
@@ -455,7 +455,7 @@
 		</material>
 
 		<mass value="0.5"/>
-		<velocity value="0.0 0.0 1.5"/>
+		<velocity value="0.0 0.0 0.0"/>
 		<!-- <angular value="0.0 50.0 0.0"/> -->
 	</model>
 
@@ -471,17 +471,17 @@
 		</material>
 
 		<mass value="0.5"/>
-		<velocity value="0.0 0.0 -1.5"/>
+		<velocity value="0.0 0.0 0.0"/>
 		<!-- <angular value="0.0 50.0 0.0"/> -->
 	</model>
 
-	<!-- <model type="obj">
+	<model type="obj">
 		<filename value="../../meshes/board.obj"/>
 
         <material type="lambertian">
             <albedo value="0.8 0.8 0.8"/>
         </material>
-        <velocity value="1.0 0.0 0.0"/>
-    </model> -->
+        <velocity value="2.0 0.0 0.0"/>
+    </model>
 
 </scene>

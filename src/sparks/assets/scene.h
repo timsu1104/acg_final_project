@@ -10,6 +10,7 @@
 #include "sparks/assets/bvh.h"
 #include "sparks/assets/aabb.h"
 #include "vector"
+#include "map"
 
 namespace sparks {
 class Scene {
@@ -32,6 +33,8 @@ class Scene {
   [[nodiscard]] Entity &GetEntity(int entity_index);
   [[nodiscard]] const Entity &GetEntity(int entity_index) const;
   [[nodiscard]] std::vector<Entity> &GetEntities();
+  std::vector<int> GetMovableEntities() const;
+  std::map<float, int> GetYMap() const;
   [[nodiscard]] const std::vector<Entity> &GetEntities() const;
   [[nodiscard]] int GetEntityCount() const;
   [[nodiscard]] std::vector<const char *> GetEntityNameList() const;
@@ -80,6 +83,8 @@ class Scene {
   std::vector<std::string> texture_names_;
 
   std::vector<Entity> entities_;
+  std::vector<int> moveable_indices_;
+  std::map<float, int> y_map_indices_;
   BVHTree bvh_tree;
 
   int envmap_id_{1};

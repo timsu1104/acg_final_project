@@ -229,7 +229,7 @@ void App::OnUpdate(uint32_t ms) {
   if (output_render_result_) {
     UploadAccumulationResult();
   }
-  if (reset_accumulation_ && !disable_instant_update_) {
+  if (reset_accumulation_) {
     core_->GetDevice()->WaitIdle();
     if (!app_settings_.hardware_renderer) {
       renderer_->ResetAccumulation();
@@ -257,11 +257,11 @@ void App::OnUpdate(uint32_t ms) {
         refresh_ -= ms;
       } 
       UpdateTopLevelAccelerationStructure(ms);
+      glfwPollEvents();
     }
     else {
       UpdateTopLevelAccelerationStructure(0);
     }
-    glfwPollEvents();
   }
   if (rebuild_ray_tracing_pipeline_) {
     BuildRayTracingPipeline();
@@ -1089,6 +1089,9 @@ void App::UpdateCamera() {
       }
       recording_ = !recording_;
     }
+    if (ImGui::IsKeyDown(ImGuiKey_K)) {
+      start_simulation_ = !start_simulation_;
+    }
   }
 
   auto rotation_scale = 1.0f / float(core_->GetWindowHeight());
@@ -1129,14 +1132,107 @@ void App::UpdateTopLevelAccelerationStructure(uint32_t ms) {
                         glm::mat4>>
       object_instances;
   auto &entities = renderer_->GetScene().GetEntities();
-  for (int i = 0; i < entities.size(); i++) {
-    auto &entity = entities[i];
-    object_instances.emplace_back(
-        bottom_level_acceleration_structures_[i].get(),
-        entity.UpdateTransformMatrix(ms));
+  if (start_simulation_) {
+    UpdatePhysicsSimulation(entities, ms);
+    for (int i = 0; i < entities.size(); i++) {
+      auto &entity = entities[i];
+      object_instances.emplace_back(
+          bottom_level_acceleration_structures_[i].get(),
+          entity.UpdateTransformMatrix(ms));
+    }
+  } else {
+    for (int i = 0; i < entities.size(); i++) {
+      auto &entity = entities[i];
+      object_instances.emplace_back(
+          bottom_level_acceleration_structures_[i].get(),
+          entity.GetTransformMatrix());
+    }
   }
+  
   top_level_acceleration_structure_->UpdateAccelerationStructure(
       core_->GetCommandPool(), object_instances);
+}
+
+int CollisionCheck(Entity& entity_a, Entity& entity_b, glm::vec3 vel, float delta_time) {
+  AxisAlignedBoundingBox aabb_a = entity_a.GetModel()->GetAABB(entity_a.GetTransformMatrix());
+  AxisAlignedBoundingBox aabb_b = entity_b.GetModel()->GetAABB(entity_b.GetTransformMatrix());
+  return aabb_a.CollisionCheck(aabb_b, vel, delta_time);
+}
+
+void Collision1D(float v1, float m1, float v2, float m2, float& new_v1, float& new_v2) {
+  new_v1 = (m1 - m2) / (m1 + m2) * v1 + (2 * m2) / (m1 + m2) * v2;
+  new_v2 = (2 * m1) / (m1 + m2) * v1 + (m2 - m1) / (m1 + m2) * v2;
+}
+
+void App::UpdatePhysicsSimulation(std::vector<Entity>& entities, uint32_t ms) {
+  if (ms < refresh_physics_) {
+    refresh_physics_ -= ms;
+    return;
+  }
+  float delta_time = (1000 + ms - refresh_physics_) / 60000.0f;
+  refresh_physics_ = 1000;
+  auto moveable_indices = renderer_->GetScene().GetMovableEntities();
+  auto y_map_indices =  renderer_->GetScene().GetYMap();
+  std::vector<bool> supported;
+  supported.clear();
+  std::vector<glm::vec3> acceleration_;
+  const float gravity = -9.80065;
+  for (size_t i = 0; i < moveable_indices.size(); i++) {
+    auto &entity = entities[moveable_indices[i]];
+    glm::vec3 vel = entity.GetVelocity();
+    supported.push_back(false);
+    auto it1 = y_map_indices.upper_bound(entity.GetModel()->GetAABB(entity.GetTransformMatrix()).y_low - 0.05);
+    auto it2 = y_map_indices.upper_bound(entity.GetModel()->GetAABB(entity.GetTransformMatrix()).y_high + 0.05);
+    for (auto it = it1; it != it2; ++it) {
+      int index = it->second;
+      auto &entity_ = entities[index];
+      glm::vec3 vel_ = entity_.GetVelocity();
+      int Collision_type = CollisionCheck(entity, entity_, vel, delta_time);
+      if (Collision_type == 1 || Collision_type == 2) {
+        entity.UpdateVelocity(-vel.x * 0.75f, 0);
+      }
+      if (Collision_type == 4) {
+        supported[i] = true;
+      }
+      if (Collision_type == 3 || Collision_type == 4) {
+        entity.UpdateVelocity(-vel.y * 0.75f, 1);
+      }
+      if (Collision_type == 5 || Collision_type == 6) {
+        entity.UpdateVelocity(-vel.z * 0.75f, 2);
+      }
+    }
+    for (size_t j = i + 1; j < moveable_indices.size(); j++) {
+      auto &entity_ = entities[moveable_indices[j]];
+      glm::vec3 vel_ = entity_.GetVelocity();
+      int Collision_type = CollisionCheck(entity, entity_, vel - vel_, delta_time);
+      if (Collision_type == 1 || Collision_type == 2) {
+        float new_v1, new_v2;
+        Collision1D(vel.x, entity.GetMass(), vel_.x, entity_.GetMass(), new_v1, new_v2);
+        entity.UpdateVelocity(new_v1, 0);
+        entity_.UpdateVelocity(new_v2, 0);
+      }
+      if (Collision_type == 3 || Collision_type == 4) {
+        float new_v1, new_v2;
+        Collision1D(vel.y, entity.GetMass(), vel_.y, entity_.GetMass(), new_v1, new_v2);
+        entity.UpdateVelocity(new_v1, 1);
+        entity_.UpdateVelocity(new_v2, 1);
+      }
+      if (Collision_type == 5 || Collision_type == 6) {
+        float new_v1, new_v2;
+        Collision1D(vel.z, entity.GetMass(), vel_.z, entity_.GetMass(), new_v1, new_v2);
+        entity.UpdateVelocity(new_v1, 2);
+        entity_.UpdateVelocity(new_v2, 2);
+      }
+    }
+  }
+  for (size_t i = 0; i < moveable_indices.size(); i++) {
+    acceleration_.push_back(glm::vec3{0.0f});
+    auto &entity = entities[moveable_indices[i]];
+    if (supported[i] == false) {
+      acceleration_[i] = glm::vec3{0.0f, gravity, 0.0f};
+    }
+    entity.UpdateVelocity(entity.GetVelocity() + acceleration_[i] * delta_time);
+  }
 }
 
 void App::BuildRayTracingPipeline() {

@@ -5,6 +5,7 @@
 #include "imgui.h"
 #include "sparks/assets/accelerated_mesh.h"
 #include "sparks/util/util.h"
+#include "scene.h"
 
 
 namespace sparks {
@@ -44,6 +45,14 @@ const Entity &Scene::GetEntity(int entity_index) const {
 
 std::vector<Entity> &Scene::GetEntities() {
   return entities_;
+}
+
+std::vector<int> Scene::GetMovableEntities() const {
+  return moveable_indices_;
+}
+
+std::map<float, int> Scene::GetYMap() const {
+  return y_map_indices_;
 }
 
 const std::vector<Entity> &Scene::GetEntities() const {
@@ -427,11 +436,17 @@ Scene::Scene(const std::string &filename) : Scene() {
       auto ang_vel_element = child_element->FirstChildElement("angular");
       glm::vec3 vel = glm::vec3{0.0f};
       glm::vec3 ang_vel = glm::vec3{0.0f};
+      float mass = -1.0f;
       if (vel_element) {
         vel = StringToVec3(vel_element->FindAttribute("value")->Value());
       }
       if (ang_vel_element) {
         ang_vel = StringToVec3(ang_vel_element->FindAttribute("value")->Value());
+      }
+
+      auto mass_element = child_element->FirstChildElement("mass");
+      if (mass_element) {
+        mass = std::stof(mass_element->FindAttribute("value")->Value());
       }
 
       auto grandchild_element = child_element->FirstChildElement("material");
@@ -444,9 +459,9 @@ Scene::Scene(const std::string &filename) : Scene() {
       auto name_attribute = child_element->FindAttribute("name");
       if (name_attribute) {
         AddEntity(AcceleratedMesh(mesh), material, transformation,
-                  std::string(name_attribute->Value()), vel, ang_vel);
+                  std::string(name_attribute->Value()), vel, ang_vel, mass);
       } else {
-        AddEntity(AcceleratedMesh(mesh), material, transformation, vel, ang_vel);
+        AddEntity(AcceleratedMesh(mesh), material, transformation, vel, ang_vel, mass);
       }
     } else {
       LAND_ERROR("Unknown Element Type: {}", child_element->Value());
@@ -457,6 +472,14 @@ Scene::Scene(const std::string &filename) : Scene() {
 
   for (int entity_id = 0; entity_id < entities_.size(); entity_id++) {
     entities_list.push_back(std::make_pair(&entities_[entity_id], entity_id));
+  }
+
+  for (int entity_id = 0; entity_id < entities_.size(); entity_id++) {
+    if (entities_[entity_id].GetMass() > 0.0f) {
+      moveable_indices_.push_back(entity_id);
+    } else {
+      y_map_indices_[entities_[entity_id].GetModel()->GetAABB(entities_[entity_id].GetTransformMatrix()).y_high] = entity_id;
+    }
   }
 
   bvh_tree = buildBVH(entities_list);

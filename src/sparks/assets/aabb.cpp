@@ -28,6 +28,49 @@ AxisAlignedBoundingBox::AxisAlignedBoundingBox(const glm::vec3 &position) {
   z_high = position.z;
 }
 
+bool LessEqual(float x, float y, float eps = 0.02f) {
+  return x < y || fabs(x - y) < eps; 
+}
+
+inline bool Equal(float x, float y) {
+  const float eps = 0.05f;
+  return fabs(x - y) < eps; 
+}
+
+inline bool LessEqual2(float x, float y) {
+  const float eps1 = 0.1f, eps2 = 0.01f;
+  return (x < y && fabs(x - y) < eps1) || fabs(x - y) < eps2;
+}
+
+int AxisAlignedBoundingBox::CollisionCheck(const AxisAlignedBoundingBox& aabb, glm::vec3 vel, float delta_time) {
+  int kx = false, ky = false, kz = false;
+  kx = x_low < aabb.x_low ? LessEqual(aabb.x_low, x_high) : LessEqual(x_low, aabb.x_high);
+  ky = y_low < aabb.y_low ? LessEqual(aabb.y_low, y_high) : LessEqual(y_low, aabb.y_high);
+  kz = z_low < aabb.z_low ? LessEqual(aabb.z_low, z_high) : LessEqual(z_low, aabb.z_high);
+  if (!(kx && ky && kz)) {
+    return 0;
+  }
+  if (LessEqual(x_high, aabb.x_low) && LessEqual(aabb.x_low, x_high + vel.x * delta_time)) {
+    return 1;
+  }
+  else if (LessEqual(aabb.x_high, x_low) && LessEqual(x_low + vel.x * delta_time, aabb.x_high)) {
+    return 2;
+  }
+  else if (LessEqual(y_high, aabb.y_low, 0.03f) && LessEqual(aabb.y_low, y_high + vel.y * delta_time, 0.03f)) {
+    return 3;
+  }
+  else if (LessEqual(aabb.y_high, y_low, 0.03f) && LessEqual(y_low + vel.y * delta_time, aabb.y_high, 0.03f)) {
+    return 4;
+  } 
+  else if (LessEqual(z_high, aabb.z_low) && LessEqual(aabb.z_low, z_high + vel.z * delta_time)) {
+    return 5;
+  }
+  else if (LessEqual(aabb.z_high, z_low) && LessEqual(z_low + vel.z * delta_time, aabb.z_high)) {
+    return 6;
+  }
+  return 0;
+}
+
 bool AxisAlignedBoundingBox::IsIntersect(const glm::vec3 &origin,
                                          const glm::vec3 &direction,
                                          float t_min,
