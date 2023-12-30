@@ -24,7 +24,8 @@ struct BVHNode {
                    const glm::vec3 &direction,
                    float t_min,
                    float t_max,
-                   HitRecord *hit_record) const;
+                   HitRecord *hit_record,
+                   bool ignore_isotropic=false) const;
 };
 
 struct BVHTree {
@@ -43,8 +44,9 @@ struct BVHTree {
                    const glm::vec3 &direction,
                    float t_min,
                    float t_max,
-                   HitRecord *hit_record) const {
-        return root->TraceRay(origin, direction, t_min, t_max, hit_record);                
+                   HitRecord *hit_record, 
+                   bool ignore_isotropic=false) const {
+        return root->TraceRay(origin, direction, t_min, t_max, hit_record, ignore_isotropic);                
     }
 };
 

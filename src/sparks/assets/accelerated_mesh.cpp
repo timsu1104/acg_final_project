@@ -16,11 +16,12 @@ AcceleratedMesh::AcceleratedMesh(const std::vector<Vertex> &vertices,
 float AcceleratedMesh::TraceRay(const glm::vec3 &origin,
                                 const glm::vec3 &direction,
                                 float t_min,
-                                HitRecord *hit_record) const {
+                                HitRecord *hit_record, 
+                                bool max_flag) const {
   // if (aabb.IsIntersect(origin, direction, t_min, 1e4f) == false) {
   //   return -1.0f;
   // }
-  return Mesh::TraceRay(origin, direction, t_min, hit_record);
+  return Mesh::TraceRay(origin, direction, t_min, hit_record, max_flag);
 }
 
 void AcceleratedMesh::BuildAccelerationStructure() {

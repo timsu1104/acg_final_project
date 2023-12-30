@@ -10,7 +10,8 @@ enum MaterialType : int {
   MATERIAL_TYPE_SPECULAR = 1,
   MATERIAL_TYPE_TRANSMISSIVE = 2,
   MATERIAL_TYPE_PRINCIPLED = 3,
-  MATERIAL_TYPE_EMISSION = 4
+  MATERIAL_TYPE_EMISSION = 4,
+  MATERIAL_TYPE_ISOTROPIC = 5
 };
 
 class Scene;
@@ -21,6 +22,7 @@ struct Material {
   glm::vec3 emission{0.0f};
   float emission_strength{1.0f};
   float alpha{1.0f};
+  float density{1.0f};
   MaterialType material_type{MATERIAL_TYPE_LAMBERTIAN};
   float reserve[2]{};
   Material() = default;

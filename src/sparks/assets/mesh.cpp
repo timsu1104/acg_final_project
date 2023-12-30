@@ -127,7 +127,8 @@ AxisAlignedBoundingBox Mesh::GetAABB(const glm::mat4 &transform) const {
 float Mesh::TraceRay(const glm::vec3 &origin,
                      const glm::vec3 &direction,
                      float t_min,
-                     HitRecord *hit_record) const {
+                     HitRecord *hit_record,
+                               bool max_flag) const {
   float result = -1.0f;
   for (int i = 0; i < indices_.size(); i += 3) {
     int j = i + 1, k = i + 2;
@@ -143,8 +144,15 @@ float Mesh::TraceRay(const glm::vec3 &origin,
     A = glm::inverse(A);
     auto uvt = A * (origin - v0.position);
     auto &t = uvt.z;
-    if (t < t_min || (result > 0.0f && t > result)) {
+    if (t < t_min) {
       continue;
+    }
+    if (result > 0.0f) {
+      if (!max_flag && t > result) {
+        continue;
+      } else if (max_flag && t < result) {
+        continue;
+      }
     }
     auto &u = uvt.x;
     auto &v = uvt.y;

@@ -102,6 +102,42 @@ float LightPdf::Value(glm::vec3 origin, glm::vec3 direction) const {
   return (distance * distance) / (cosine * area);
 }
 
+
+VolumeLightPdf::VolumeLightPdf(glm::vec3 normal, const Scene *scene) : scene_(scene), normal_(normal) {
+  normal_ = normal;
+  light_ = NULL;
+  for (auto &entity : scene->GetEntities()) {
+    const Model* model = entity.GetModel();
+    material = &entity.GetMaterial();
+    if (material->material_type == MATERIAL_TYPE_ISOTROPIC) {
+      light_ = model;
+      break;
+    }
+  }
+}
+
+glm::vec3 VolumeLightPdf::Generate(glm::vec3 origin, std::mt19937 &rd) const {
+  if (light_ == NULL) return glm::vec3{0.0f};
+  auto sample = light_->SamplingPoint(rd);
+  if (glm::dot(sample - origin, normal_) > 0.0f) {
+    return glm::normalize(sample - origin);
+  } else {
+    return glm::vec3{0.0f};
+  }
+}
+
+float VolumeLightPdf::Value(glm::vec3 origin, glm::vec3 direction) const {
+  HitRecord light_hit_record;
+  float light_t = scene_->TraceRay(origin, direction, 1e-3f, 1e4f, &light_hit_record);
+  if (light_t == -1.0f || light_hit_record.hit_entity_id == -1 || scene_->GetEntity(light_hit_record.hit_entity_id).GetMaterial().material_type != MATERIAL_TYPE_EMISSION) {
+    return 0.0f;
+  }
+  float area = light_->GetArea();
+  auto distance = glm::length(light_hit_record.position - origin);
+  auto cosine = fabs(glm::dot(direction, light_hit_record.normal)) / direction.length();
+  return (distance * distance) / (cosine * area);
+}
+
 CosineHemispherePdf::CosineHemispherePdf(glm::vec3 normal) {
   uvw = Onb(normal);
 }

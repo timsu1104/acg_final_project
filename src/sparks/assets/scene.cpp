@@ -4,6 +4,7 @@
 #include "glm/gtc/matrix_transform.hpp"
 #include "imgui.h"
 #include "sparks/assets/accelerated_mesh.h"
+#include "sparks/assets/material.h"
 #include "sparks/util/util.h"
 
 
@@ -195,8 +196,9 @@ float Scene::TraceRay(const glm::vec3 &origin,
                       const glm::vec3 &direction,
                       float t_min,
                       float t_max,
-                      HitRecord *hit_record) const {
-  float res = bvh_tree.TraceRay(origin, direction, t_min, t_max, hit_record);
+                      HitRecord *hit_record,
+                      bool ignore_isotropic) const {
+  float res = bvh_tree.TraceRay(origin, direction, t_min, t_max, hit_record, ignore_isotropic);
   if (hit_record) {
     hit_record->geometry_normal = glm::normalize(hit_record->geometry_normal);
     hit_record->normal = glm::normalize(hit_record->normal);

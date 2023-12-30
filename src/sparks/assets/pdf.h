@@ -69,6 +69,23 @@ class LightPdf : public Pdf {
   glm::vec3 normal_;
 };
 
+class VolumeLightPdf : public Pdf {
+ public:
+  // Collect all light sources in the scene
+  VolumeLightPdf(glm::vec3 normal, const Scene *scene);
+  glm::vec3 Generate(glm::vec3 origin, std::mt19937 &rd) const override;
+  float Value(glm::vec3 origin, const glm::vec3 direction) const override;
+  float Area() const {return light_->GetArea();}
+  const Material& GetMaterial() const {return *material;}
+
+ private:
+  const Scene* scene_;
+  const Model* light_{nullptr};
+  const Material* material;
+  glm::vec3 normal_;
+};
+
+
 class CosineHemispherePdf : public Pdf {
  public:
   CosineHemispherePdf(glm::vec3 normal);

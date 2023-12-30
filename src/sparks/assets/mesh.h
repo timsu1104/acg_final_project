@@ -17,7 +17,8 @@ class Mesh : public Model {
   [[nodiscard]] float TraceRay(const glm::vec3 &origin,
                                const glm::vec3 &direction,
                                float t_min,
-                               HitRecord *hit_record) const override;
+                               HitRecord *hit_record,
+                               bool max_flag=false) const override;
   const char *GetDefaultEntityName() override;
   [[nodiscard]] AxisAlignedBoundingBox GetAABB(
       const glm::mat4 &transform) const override;
