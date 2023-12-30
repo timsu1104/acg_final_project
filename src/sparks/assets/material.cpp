@@ -14,7 +14,7 @@ std::unordered_map<std::string, MaterialType> material_name_map{
     {"transmissive", MATERIAL_TYPE_TRANSMISSIVE},
     {"principled", MATERIAL_TYPE_PRINCIPLED},
     {"emission", MATERIAL_TYPE_EMISSION}, 
-    {"isotropic", MATERIAL_TYPE_ISOTROPIC}};
+    {"volume", MATERIAL_TYPE_VOLUME}};
 }
 
 Material::Material(Scene *scene, const tinyxml2::XMLElement *material_element)
@@ -66,9 +66,9 @@ Material::Material(Scene *scene, const tinyxml2::XMLElement *material_element)
     alpha = std::stof(child_element->FindAttribute("value")->Value());
   }
   
-  child_element = material_element->FirstChildElement("density");
+  child_element = material_element->FirstChildElement("attenuation");
   if (child_element) {
-    density = std::stof(child_element->FindAttribute("value")->Value());
+    attenuation = StringToVec3(child_element->FindAttribute("value")->Value());
   }
 
   material_type =

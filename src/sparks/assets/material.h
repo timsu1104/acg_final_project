@@ -11,7 +11,7 @@ enum MaterialType : int {
   MATERIAL_TYPE_TRANSMISSIVE = 2,
   MATERIAL_TYPE_PRINCIPLED = 3,
   MATERIAL_TYPE_EMISSION = 4,
-  MATERIAL_TYPE_ISOTROPIC = 5
+  MATERIAL_TYPE_VOLUME = 5
 };
 
 class Scene;
@@ -21,10 +21,11 @@ struct Material {
   int albedo_texture_id{0};
   glm::vec3 emission{0.0f};
   int normal_map_id{-1};
+  glm::vec3 attenuation{0.0f};
   float emission_strength{1.0f};
   float alpha{1.0f};
-  float density{1.0f};
   MaterialType material_type{MATERIAL_TYPE_LAMBERTIAN};
+  float reserve[2]{};
   Material() = default;
   explicit Material(const glm::vec3 &albedo);
   Material(Scene *scene, const tinyxml2::XMLElement *material_element);

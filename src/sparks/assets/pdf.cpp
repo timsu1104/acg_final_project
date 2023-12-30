@@ -109,7 +109,7 @@ VolumeLightPdf::VolumeLightPdf(glm::vec3 normal, const Scene *scene) : scene_(sc
   for (auto &entity : scene->GetEntities()) {
     const Model* model = entity.GetModel();
     material = &entity.GetMaterial();
-    if (material->material_type == MATERIAL_TYPE_ISOTROPIC) {
+    if (material->material_type == MATERIAL_TYPE_VOLUME) {
       light_ = model;
       break;
     }
