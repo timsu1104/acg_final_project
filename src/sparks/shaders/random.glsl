@@ -31,6 +31,12 @@ float RandomFloat() {
   return ret;
 }
 
+uint RandomInt(uint bound) {
+  uint ret = WangHash(random_device.seed) % bound;
+  random_device.seed ^= uint(61);
+  return ret;
+}
+
 vec2 RandomOnCircle() {
   float theta = RandomFloat() * PI * 2.0;
   return vec2(sin(theta), cos(theta));

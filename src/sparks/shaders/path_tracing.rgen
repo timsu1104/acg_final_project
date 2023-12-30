@@ -67,6 +67,9 @@ void TraceRay(vec3 origin, vec3 direction) {
   hit_record = GetHitRecord(ray_payload, origin, direction);
 }
 
+float color_refraction[] = {1.510, 1.523, 1.530, 1.535, 1.550, 1.565, 1.590};
+vec3 color_albedo[] = {{1, 0, 0}, {1, 0.5, 0}, {1, 1, 0}, {0, 1, 0}, {0, 1, 1}, {0, 0, 1}, {0.5, 0, 0.5}};
+
 // clang-format off
 #include "pdf.glsl"
 // clang-format on
@@ -164,34 +167,20 @@ vec3 SampleRay(vec3 origin, vec3 direction) {
       }
 
       if (material.material_type == MATERIAL_TYPE_TRANSMISSIVE) {
-        float ir = 1.33;
-        float refraction_ratio = 1.0 / ir;
-        throughput *= albedo;
-        float cosine = dot(normal, direction) / (length(normal) * length(direction));
+        uint color_index = RandomInt(7);
+        float ir = color_refraction[color_index] * 0.7;
+        float refraction_ratio = hit_record.front_face ?  (1.0 / ir) : ir;
+        throughput *= albedo * color_albedo[color_index];
+        if (dot(normal, direction) > 0.0) {
+          normal = -normal;
+        }
+        float cosine = abs(dot(normal, direction) / (length(normal) * length(direction)));
         float sine = sqrt(1.0 - cosine * cosine);
-        if (reflectance(cosine, refraction_ratio) > RandomFloat()) {
+        bool cannot_refract = refraction_ratio * sine > 1.0;
+        if (cannot_refract || reflectance(cosine, refraction_ratio) > RandomFloat()) {
           direction = reflect(direction, normal);
         } else {
           direction = refract(direction, normal, refraction_ratio);
-          refraction_ratio = ir;
-          for (int k = 0; k < 5; k++) {
-            TraceRay(origin, direction);
-            origin = hit_record.position;
-            refraction_ratio = 1.0 / refraction_ratio;
-            vec3 normal = hit_record.normal;
-            if (dot(normal, direction) < 0.0) {
-              normal = -normal;
-            }
-            cosine = dot(normal, direction) / (length(normal) * length(direction));
-            sine = sqrt(1.0 - cosine * cosine);
-            bool cannot_refract = refraction_ratio * sine > 1.0;
-            if (cannot_refract || reflectance(cosine, refraction_ratio) > RandomFloat()) {
-              direction = reflect(direction, normal);
-            } else {
-              direction = refract(direction, normal, refraction_ratio);
-              break;
-            }
-          }
         }
       }
 
