@@ -3,10 +3,11 @@ struct Material {
   vec3 albedo_color; // 0
   int albedo_texture_id; // 12
   vec3 emission; // 16
-  float emission_strength; // 28
-  float alpha; // 32
-  float density; // 36
-  uint material_type; // 40
+  int normal_map_id; // 28
+  float emission_strength; // 32
+  float alpha; // 36
+  float density; // 40
+  uint material_type; // 44
 };
 
 #define MATERIAL_TYPE_LAMBERTIAN 0

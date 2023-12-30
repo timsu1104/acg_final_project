@@ -110,6 +110,10 @@ vec3 SampleRay(vec3 origin, vec3 direction) {
       if (dot(normal, direction) > 0.0) {
         normal = -normal;
       }
+      if (material.normal_map_id >= 0) {
+        normal = vec3(texture(texture_samplers[material.normal_map_id],
+                                   hit_record.tex_coord));
+      }
       
       if (material.material_type == MATERIAL_TYPE_LAMBERTIAN) {
         if (material.albedo_texture_id >= 0) {

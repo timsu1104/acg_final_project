@@ -20,11 +20,11 @@ struct Material {
   glm::vec3 albedo_color{0.8f};
   int albedo_texture_id{0};
   glm::vec3 emission{0.0f};
+  int normal_map_id{0};
   float emission_strength{1.0f};
   float alpha{1.0f};
   float density{1.0f};
   MaterialType material_type{MATERIAL_TYPE_LAMBERTIAN};
-  float reserve{};
   Material() = default;
   explicit Material(const glm::vec3 &albedo);
   Material(Scene *scene, const tinyxml2::XMLElement *material_element);
