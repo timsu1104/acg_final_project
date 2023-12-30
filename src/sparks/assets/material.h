@@ -20,7 +20,7 @@ struct Material {
   glm::vec3 albedo_color{0.8f};
   int albedo_texture_id{0};
   glm::vec3 emission{0.0f};
-  int normal_map_id{0};
+  int normal_map_id{-1};
   float emission_strength{1.0f};
   float alpha{1.0f};
   float density{1.0f};
