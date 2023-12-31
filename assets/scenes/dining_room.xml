@@ -340,8 +340,19 @@
         <material type="volume">
             <albedo value="1 1 1"/>
             <emission value="1.0 1.0 1.0"/>
-            <emission_strength value="0.1"/>
-            <attenuation value="0.3 0.3 0.0"/>
+            <emission_strength value="0.2"/>
+            <attenuation value="1.0 1.0 1.0"/>
+        </material>
+	</model>
+
+    <model type="obj">
+		<filename value="../../meshes/table_volume_light.obj"/>
+
+        <material type="volume">
+            <albedo value="1 1 1"/>
+            <emission value="1.0 1.0 0.0"/>
+            <emission_strength value="3.5"/>
+            <attenuation value="3.0 3.0 1.0"/>
         </material>
 	</model>
 
