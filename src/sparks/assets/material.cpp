@@ -66,6 +66,11 @@ Material::Material(Scene *scene, const tinyxml2::XMLElement *material_element)
   if (child_element) {
     alpha = std::stof(child_element->FindAttribute("value")->Value());
   }
+
+  child_element = material_element->FirstChildElement("belong_id");
+  if (child_element) {
+    belong_id = std::stoi(child_element->FindAttribute("value")->Value());
+  }
   
   child_element = material_element->FirstChildElement("attenuation");
   if (child_element) {

@@ -7,7 +7,8 @@ struct Material {
   vec3 attenuation; // 32
   float emission_strength; // 44
   float alpha; // 48
-  uint material_type; // 52
+  int belong_id; // 52
+  uint material_type; // 56
 };
 
 #define MATERIAL_TYPE_LAMBERTIAN 0

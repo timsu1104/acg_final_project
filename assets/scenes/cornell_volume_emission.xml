@@ -191,8 +191,8 @@
         <material type="volume">
             <albedo value="1 1 1"/>
             <emission value="1.0 1.0 0.0"/>
-            <emission_strength value="0.000"/>
-            <attenuation value="1e-4 1e-4 3e-5"/>
+            <emission_strength value="10.0"/>
+            <attenuation value="5e-4 5e-4 3e-4"/>
         </material>
     </model>
 

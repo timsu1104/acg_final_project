@@ -71,7 +71,8 @@ class Renderer {
   // Scene scene_{"../../scenes/base2.xml"};
   // Scene scene_{"../../scenes/cornell_specular.xml"};
   // Scene scene_{"../../scenes/cornell.xml"};
-  // Scene scene_{"../../scenes/cornell_volume.xml"};
+  // Scene scene_{"../../scenes/cornell_volume_lighting.xml"};
+  // Scene scene_{"../../scenes/cornell_volume_emission.xml"};
   // Scene scene_{"../../scenes/cornell_lucy_bunny.xml"};
   // Scene scene_{"../../scenes/tropical_island.xml"};
   Scene scene_{"../../scenes/dining_room.xml"};
