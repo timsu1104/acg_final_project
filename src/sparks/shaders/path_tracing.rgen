@@ -132,6 +132,7 @@ vec3 SampleRay(vec3 origin, vec3 direction) {
         break;
       }
       
+      vec3 pre_orig = origin;
       origin = hit_record.position;
       vec3 albedo = material.albedo_color;
       vec3 normal = hit_record.normal;
@@ -213,9 +214,9 @@ vec3 SampleRay(vec3 origin, vec3 direction) {
           direction = reflect(direction, normal);
         } else {
           direction = refract(direction, normal, refraction_ratio);
-        }
       }
-
+      }
+      
       if (material.material_type == MATERIAL_TYPE_MICROFACET) {
         if (material.albedo_texture_id >= 0) {
           albedo *= vec3(texture(texture_samplers[material.albedo_texture_id],
@@ -236,6 +237,36 @@ vec3 SampleRay(vec3 origin, vec3 direction) {
         // pdf *= Value_Cos(brdf_sample, direction);
         direction = out_direction;
         throughput *= scatter / pdf / rate;
+      }
+
+      if (material.material_type == MATERIAL_TYPE_VOLUME) {
+        radiance += throughput * material.emission * material.emission_strength;
+        int channel = int(floor(RandomFloat() * 3.0));
+        float sigma_t = material.attenuation[channel];
+        float dist = -log(RandomFloat()) / sigma_t;
+        HitRecord far_hit_record = TraceRayMesh(
+          hit_record.hit_entity_id, 
+          pre_orig, 
+          direction, 
+          1e-3, 
+          true
+        );
+        float t_max = distance(hit_record.position, far_hit_record.position);
+        float t = min(dist * direction.length(), t_max);
+        vec3 Tr = exp(-sigma_t * t * direction);
+        if (t < t_max) {
+          vec3 density = material.attenuation * Tr;
+          float pdf = (density.x + density.y + density.z) / 3;
+          direction.y = RandomFloat();
+          direction.x = sqrt(1 - direction.y * direction.y) * cos(2 * PI * RandomFloat());
+          direction.z = sqrt(1 - direction.x * direction.x - direction.y * direction.y);
+          throughput *= albedo * Tr / pdf;
+        } else {
+          vec3 density = Tr;
+          float pdf = (density.x + density.y + density.z) / 3;
+          origin = far_hit_record.position;
+          throughput *= Tr / pdf;
+        }
       }
 
       if (RandomFloat() > rate || max(throughput.x, max(throughput.y, throughput. z)) < 1e-5) {
