@@ -312,7 +312,7 @@
 
         <material type="emission">
             <emission value="1.0 1.0 1.0"/>
-            <emission_strength value="1.5"/>
+            <emission_strength value="8.5"/>
         </material>
 	</model>
 
@@ -321,7 +321,7 @@
 
         <material type="emission">
             <emission value="1.0 1.0 1.0"/>
-            <emission_strength value="1.5"/>
+            <emission_strength value="8.5"/>
         </material>
 	</model>
 
@@ -330,7 +330,7 @@
 
         <material type="emission">
             <emission value="1.0 1.0 1.0"/>
-            <emission_strength value="1.5"/>
+            <emission_strength value="8.5"/>
         </material>
 	</model>
 
@@ -351,7 +351,7 @@
         <material type="volume">
             <albedo value="1 1 1"/>
             <emission value="1.0 1.0 0.0"/>
-            <emission_strength value="3.5"/>
+            <emission_strength value="7.5"/>
             <attenuation value="3.0 3.0 1.0"/>
         </material>
 	</model>
@@ -453,7 +453,7 @@
 
         <material type="emission">
             <emission value="1.0 1.0 1.0"/>
-            <emission_strength value="0.5"/>
+            <emission_strength value="4.5"/>
         </material>
 	</model>
 

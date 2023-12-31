@@ -110,12 +110,12 @@ class App {
   int cursor_x_{-1};
   int cursor_y_{-1};
 
-  bool output_render_result_{false};
+  bool output_render_result_{true};
   bool reset_accumulation_{true};
   bool rebuild_ray_tracing_pipeline_{false};
   uint32_t accumulated_sample_{0};
   bool gui_pause_{false};
-  bool disable_instant_update_{false};
+  bool disable_instant_update_{true};
   bool recording_{false};
   bool start_simulation_{false};
   uint32_t refresh_{2000}, refresh_physics_{2000};

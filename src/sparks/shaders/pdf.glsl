@@ -12,10 +12,19 @@ struct LightPdf {
     vec3 normal_;
 };
 
+struct VolumeLightPdf {
+    int index;
+    float volume;
+    float t;
+    vec3 normal_;
+};
+
 struct MixturePdf {
-    LightPdf light_;
+    LightPdf light_[6];
+    VolumeLightPdf volume_[2];
     CosineHemispherePdf cosine_;
-    float prob;
+    float prob_light, prob_volume, prob_cosine;
+    int light_num, volume_num;
 };
 
 Onb Onb_from_z(vec3 z_dir) {
@@ -61,19 +70,52 @@ float Value_Light(LightPdf pdf, vec3 origin, vec3 direction) {
   return (dist * dist) / (cosine * pdf.area);
 }
 
+vec3 Generate_Volume(inout VolumeLightPdf pdf, vec3 origin) {
+  vec3 light_sample = sample_volume(pdf.index);
+  if (dot(light_sample - origin, pdf.normal_) > 0.0) {
+    pdf.t = distance(light_sample, origin);
+    return normalize(light_sample - origin);
+  } else {
+    return vec3(0.0);
+  }
+}
+
+float Value_Volume(VolumeLightPdf pdf, vec3 origin, vec3 direction) {
+  HitRecord light_hit_rec = TraceRayMesh(pdf.index, origin, direction, 1e-3, false);
+  HitRecord far_light_hit_rec = TraceRayMesh(pdf.index, origin, direction, 1e-3, true);
+  if (light_hit_rec.position == far_light_hit_rec.position) {
+    light_hit_rec = TraceRayMesh(pdf.index, origin, -direction, 1e-3, false);
+  }
+  float dist = distance(light_hit_rec.position, far_light_hit_rec.position);
+  return (pdf.t * pdf.t * dist) / (pdf.volume);
+}
+
 vec3 Generate_Mix(MixturePdf pdf, vec3 origin) {
   float u = RandomFloat();
-  if (u < pdf.prob) {
-    return Generate_Light(pdf.light_, origin);
+  if (u < pdf.prob_light) {
+    uint sel_light_idx = RandomInt(pdf.light_num);
+    return Generate_Light(pdf.light_[sel_light_idx], origin);
+  } else if (u < pdf.prob_light + pdf.prob_volume) {
+    uint sel_vol_idx = RandomInt(pdf.volume_num);
+    return Generate_Volume(pdf.volume_[sel_vol_idx], origin);
   } else {
     return Generate_Cos(pdf.cosine_, origin);
   }
 }
 
 float Value_Mix(MixturePdf pdf, vec3 origin, vec3 direction) {
-  float light_pdf = Value_Light(pdf.light_, origin, direction);
+  float light_pdf = 0;
+  for (int i=0;i<pdf.light_num;i++) {
+    light_pdf += Value_Light(pdf.light_[i], origin, direction);
+  }
+  light_pdf /= pdf.light_num;
+  float volume_pdf = 0;
+  for (int i=0;i<pdf.volume_num;i++) {
+    volume_pdf += Value_Volume(pdf.volume_[i], origin, direction);
+  }
+  volume_pdf /= pdf.volume_num;
   float brdf_pdf = Value_Cos(pdf.cosine_, direction);
-  return pdf.prob * light_pdf + (1.0 - pdf.prob) * brdf_pdf;
+  return pdf.prob_light * light_pdf + pdf.prob_volume * volume_pdf + pdf.prob_cosine * brdf_pdf;
 }
 
 float DistributionGGX(vec3 n, vec3 h, float roughness) {

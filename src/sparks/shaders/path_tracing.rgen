@@ -114,11 +114,36 @@ vec3 SampleRay(vec3 origin, vec3 direction) {
   vec3 throughput = vec3(1.0);
   vec3 l_dir = vec3(0.0);
   const float rate = 0.9;
+  const float eps = 1e-3;
 
-  int light_idx;
-  for (light_idx = 0; light_idx < materials.length(); light_idx++)
-    if (materials[light_idx].material_type == MATERIAL_TYPE_EMISSION)
-      break;
+  int light_num=0;
+  LightPdf light_sampler[6];
+  for (int light_idx = 0; light_idx < materials.length(); light_idx++)
+    if (materials[light_idx].material_type == MATERIAL_TYPE_EMISSION && materials[light_idx].emission_strength > 0) {
+      light_sampler[light_num].index = light_idx;
+      light_sampler[light_num].area = GetArea(light_idx);
+      light_num++;
+      if (light_num == 6) break;
+    }
+
+  int volume_num=0;
+  VolumeLightPdf volume_sampler[2];
+  for (int volume_idx = 0; volume_idx < materials.length(); volume_idx++)
+    if (materials[volume_idx].material_type == MATERIAL_TYPE_VOLUME) {
+      volume_sampler[volume_num].index = volume_idx;
+      volume_sampler[volume_num].volume = GetVolume(volume_idx);
+      volume_num++;
+      if (volume_num == 2) break;
+    }
+  
+  MixturePdf mixpdf;
+  mixpdf.light_ = light_sampler;
+  mixpdf.volume_ = volume_sampler;
+  mixpdf.prob_light = 0.2;
+  mixpdf.prob_volume = 0.1;
+  mixpdf.prob_cosine = 1.0 - mixpdf.prob_light - mixpdf.prob_volume;
+  mixpdf.light_num = light_num;
+  mixpdf.volume_num = volume_num;
   
   bool is_in_volume = false;
   Material volume_material;
@@ -132,18 +157,19 @@ vec3 SampleRay(vec3 origin, vec3 direction) {
     } else {
       Material material = materials[hit_record.hit_entity_id];
 
+      // FIXME: The covered area of the volume is purely dark. 
       if (is_in_volume || material.material_type == MATERIAL_TYPE_VOLUME) {
         if (!is_in_volume) {
           volume_material = material;
         }
-        int channel = int(floor(RandomFloat() * 3.0));
+        uint channel = RandomInt(3);
         float sigma_t = volume_material.attenuation[channel];
         float dist = -log(RandomFloat()) / sigma_t;
         HitRecord far_hit_record = TraceRayMesh(
           hit_record.hit_entity_id, 
           origin, 
           direction, 
-          1e-3, 
+          eps, 
           true
         );
         vec3 t_min_point = is_in_volume ? origin : hit_record.position;
@@ -158,6 +184,19 @@ vec3 SampleRay(vec3 origin, vec3 direction) {
         if (inside_hit_record.hit_entity_id == far_hit_record.hit_entity_id || t < inside_t_max) {
           if (t < volume_t_max) {
             radiance += throughput * volume_material.emission * volume_material.emission_strength;
+
+            if (volume_material.belong_id >= 0) {
+              LightPdf light_sampler;
+              light_sampler.index = volume_material.belong_id;
+              light_sampler.area = GetArea(volume_material.belong_id);
+              vec3 light_dir = sample_mesh(volume_material.belong_id, GetArea(volume_material.belong_id)) - hit_record.position;
+              float light_pdf = Value_Light(light_sampler, origin, light_dir);
+              vec3 light_color = materials[volume_material.belong_id].emission * materials[volume_material.belong_id].emission_strength;
+              float g = 0.0;
+              float scatter = 1.0/(4.0*PI) * (1.0 - g * g)/ pow(1.0 + g * g - 2.0*g* dot(light_dir,direction), 1.5);
+              l_dir += throughput * scatter * light_color / light_pdf;
+            }
+
             vec3 density = volume_material.attenuation * exp(-sigma_t * t * direction);
             float pdf = (density.x + density.y + density.z) / 3;
             throughput *= volume_material.albedo_color * exp(-sigma_t * t * direction) / pdf;
@@ -169,7 +208,7 @@ vec3 SampleRay(vec3 origin, vec3 direction) {
           } else {
             vec3 density = exp(-sigma_t * t * direction);
             float pdf = (density.x + density.y + density.z) / 3;
-            origin = far_hit_record.position + 1e-3 * direction;
+            origin = far_hit_record.position + eps * direction;
             throughput *= exp(-sigma_t * t * direction) / pdf;
             if (is_in_volume)
               is_in_volume = false;
@@ -201,21 +240,36 @@ vec3 SampleRay(vec3 origin, vec3 direction) {
                                    hit_record.tex_coord));
         }
 
-        LightPdf light_sampler;
-        light_sampler.index = light_idx;
-        light_sampler.area = GetArea(light_idx);
-        light_sampler.normal_ = normal;
-        vec3 light_dir = Generate_Light(light_sampler, origin);
+        for (int i = 0; i < light_num; i++) {
+          light_sampler[i].normal_ = normal;
+        }
+        
+        uint sel_light_idx = RandomInt(light_num);
+        vec3 light_dir = Generate_Light(light_sampler[sel_light_idx], origin);
         if (light_dir != vec3(0.0)) {
-          float light_pdf = Value_Light(light_sampler, origin, light_dir);
-          vec3 light_color = materials[light_idx].emission * materials[light_idx].emission_strength;
-          float scatter = max(0.0, dot(normal, direction) / PI);
-          l_dir += 
-            throughput
-              * albedo
-              * scatter
-              * light_color
-              / light_pdf;
+          int index = light_sampler[sel_light_idx].index;
+          float light_pdf = Value_Light(light_sampler[sel_light_idx], origin, light_dir);
+          if (light_pdf > 0) {
+            vec3 light_color = materials[index].emission * materials[index].emission_strength;
+            float scatter = max(0.0, dot(normal, direction) / PI);
+            l_dir += throughput * albedo * scatter * light_color / light_pdf;
+          }
+        }
+
+        for (int i = 0; i < volume_num; i++) {
+          volume_sampler[i].normal_ = normal;
+        }
+
+        uint sel_vol_idx = RandomInt(volume_num);
+        vec3 volume_dir = Generate_Volume(volume_sampler[sel_vol_idx], origin);
+        if (volume_dir != vec3(0.0)) {
+          int index = volume_sampler[sel_vol_idx].index;
+          float volume_pdf = Value_Volume(volume_sampler[sel_vol_idx], origin, volume_dir);
+          if (volume_pdf > 0) {
+            vec3 volume_color = materials[index].emission * materials[index].emission_strength;
+            float scatter = max(0.0, dot(normal, direction) / PI);
+            l_dir += throughput * albedo * scatter * volume_color / volume_pdf;
+          }
         }
 
         CosineHemispherePdf brdf_sample;
@@ -226,16 +280,27 @@ vec3 SampleRay(vec3 origin, vec3 direction) {
         // float pdf = Value_Cos(brdf_sample, direction);
         
         // Importance Sampling from Light
-        // direction = Generate_Light(light_sampler, origin);
+        // direction = Generate_Light(light_sampler[sel_light_idx], origin);
         // if (direction == vec3(0.0))
         //   break;
-        // float pdf = Value_Light(light_sampler, origin, direction);
+        // float pdf = Value_Light(light_sampler[sel_light_idx], origin, direction);
+
+        // Importance Sampling from Volume
+        // direction = Generate_Volume(volume_sampler[sel_vol_idx], origin);
+        // if (direction == vec3(0.0)) {
+        //   break;
+        // }
+        // float pdf = Value_Volume(volume_sampler[sel_vol_idx], origin, direction);
 
         // Multiple Importance Sampling
-        MixturePdf mixpdf;
-        mixpdf.light_ = light_sampler;
         mixpdf.cosine_ = brdf_sample;
-        mixpdf.prob = 0.0;
+        for (int i = 0; i < light_num; i++) {
+          mixpdf.light_[i].normal_ = normal;
+        }
+        for (int i = 0; i < volume_num; i++) {
+          mixpdf.volume_[i].normal_ = normal;
+        }
+
         direction = Generate_Mix(mixpdf, origin);
         if (direction == vec3(0.0))
           break;
