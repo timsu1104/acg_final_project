@@ -12,7 +12,7 @@
 		<filename value="../../meshes/book1.obj"/>
 
 		<material type="lambertian">
-			<albedo value="1 1 1"/>
+			<albedo value="0.8 0.8 0.8"/>
 			<albedo_texture value="../../textures/book1.jpg"/>
 		</material>
 	</model>
@@ -21,7 +21,7 @@
 		<filename value="../../meshes/book2.obj"/>
 
 		<material type="lambertian">
-			<albedo value="1 1 1"/>
+			<albedo value="0.8 0.8 0.8"/>
 			<albedo_texture value="../../textures/book2.jpg"/>
 		</material>
 	</model>
@@ -30,7 +30,7 @@
 		<filename value="../../meshes/book3.obj"/>
 
 		<material type="lambertian">
-			<albedo value="1 1 1"/>
+			<albedo value="0.8 0.8 0.8"/>
 			<albedo_texture value="../../textures/book3.jpg"/>
 		</material>
 	</model>
@@ -39,7 +39,7 @@
 		<filename value="../../meshes/book4.obj"/>
 
 		<material type="lambertian">
-			<albedo value="1 1 1"/>
+			<albedo value="0.8 0.8 0.8"/>
 			<albedo_texture value="../../textures/book4.jpg"/>
 		</material>
 	</model>
@@ -48,7 +48,7 @@
 		<filename value="../../meshes/book5.obj"/>
 
 		<material type="lambertian">
-			<albedo value="1 1 1"/>
+			<albedo value="0.8 0.8 0.8"/>
 			<albedo_texture value="../../textures/book5.jpg"/>
 		</material>
 	</model>
@@ -57,7 +57,7 @@
 		<filename value="../../meshes/book6.obj"/>
 
 		<material type="lambertian">
-			<albedo value="1 1 1"/>
+			<albedo value="0.8 0.8 0.8"/>
 			<albedo_texture value="../../textures/book6.jpg"/>
 		</material>
 	</model>
@@ -66,7 +66,7 @@
 		<filename value="../../meshes/book7.obj"/>
 
 		<material type="lambertian">
-			<albedo value="1 1 1"/>
+			<albedo value="0.8 0.8 0.8"/>
 			<albedo_texture value="../../textures/book7.jpg"/>
 		</material>
 	</model>
@@ -75,7 +75,7 @@
 		<filename value="../../meshes/book8.obj"/>
 
 		<material type="lambertian">
-			<albedo value="1 1 1"/>
+			<albedo value="0.8 0.8 0.8"/>
 			<albedo_texture value="../../textures/book8.jpg"/>
 		</material>
 	</model>
@@ -84,7 +84,7 @@
 		<filename value="../../meshes/book9.obj"/>
 
 		<material type="lambertian">
-			<albedo value="1 1 1"/>
+			<albedo value="0.8 0.8 0.8"/>
 			<albedo_texture value="../../textures/book9.jpg"/>
 		</material>
 	</model>
@@ -93,7 +93,7 @@
 		<filename value="../../meshes/book10.obj"/>
 
 		<material type="lambertian">
-			<albedo value="1 1 1"/>
+			<albedo value="0.8 0.8 0.8"/>
 			<albedo_texture value="../../textures/book10.jpg"/>
 		</material>
 	</model>
@@ -102,7 +102,7 @@
 		<filename value="../../meshes/book11.obj"/>
 
 		<material type="lambertian">
-			<albedo value="1 1 1"/>
+			<albedo value="0.8 0.8 0.8"/>
 			<albedo_texture value="../../textures/book11.jpg"/>
 		</material>
 	</model>
@@ -111,7 +111,7 @@
 		<filename value="../../meshes/book12.obj"/>
 
 		<material type="lambertian">
-			<albedo value="1 1 1"/>
+			<albedo value="0.8 0.8 0.8"/>
 			<albedo_texture value="../../textures/book12.jpg"/>
 		</material>
 	</model>
@@ -120,7 +120,7 @@
 		<filename value="../../meshes/book13.obj"/>
 
 		<material type="lambertian">
-			<albedo value="1 1 1"/>
+			<albedo value="0.8 0.8 0.8"/>
 			<albedo_texture value="../../textures/book13.jpg"/>
 		</material>
 	</model>
@@ -129,7 +129,7 @@
 		<filename value="../../meshes/book14.obj"/>
 
 		<material type="lambertian">
-			<albedo value="1 1 1"/>
+			<albedo value="0.8 0.8 0.8"/>
 			<albedo_texture value="../../textures/book14.jpg"/>
 		</material>
 	</model>
@@ -138,7 +138,7 @@
 		<filename value="../../meshes/book15.obj"/>
 
 		<material type="lambertian">
-			<albedo value="1 1 1"/>
+			<albedo value="0.8 0.8 0.8"/>
 			<albedo_texture value="../../textures/book15.jpg"/>
 		</material>
 	</model>
@@ -147,7 +147,7 @@
 		<filename value="../../meshes/book16.obj"/>
 
 		<material type="lambertian">
-			<albedo value="1 1 1"/>
+			<albedo value="0.8 0.8 0.8"/>
 			<albedo_texture value="../../textures/book16.jpg"/>
 		</material>
 	</model>
@@ -156,7 +156,7 @@
 		<filename value="../../meshes/book17.obj"/>
 
 		<material type="lambertian">
-			<albedo value="1 1 1"/>
+			<albedo value="0.8 0.8 0.8"/>
 			<albedo_texture value="../../textures/book17.jpg"/>
 		</material>
 	</model>
@@ -165,7 +165,7 @@
 		<filename value="../../meshes/book18.obj"/>
 
 		<material type="lambertian">
-			<albedo value="1 1 1"/>
+			<albedo value="0.8 0.8 0.8"/>
 			<albedo_texture value="../../textures/book18.jpg"/>
 		</material>
 	</model>
@@ -242,7 +242,7 @@
 		<filename value="../../meshes/cupboards.obj"/>
 
 		<material type="lambertian">
-			<albedo value="1 1 1"/>
+			<albedo value="0.8 0.8 0.8"/>
 		</material>
 	</model>
 
@@ -268,7 +268,7 @@
 		<filename value="../../meshes/frame1.obj"/>
 
 		<material type="lambertian">
-			<albedo value="1 1 1"/>
+			<albedo value="0.8 0.8 0.8"/>
 		</material>
 	</model>
 
@@ -276,7 +276,7 @@
 		<filename value="../../meshes/frame2.obj"/>
 
 		<material type="lambertian">
-			<albedo value="1 1 1"/>
+			<albedo value="0.8 0.8 0.8"/>
 		</material>
 	</model>
 
@@ -338,7 +338,7 @@
 		<filename value="../../meshes/picture1.obj"/>
 
 		<material type="lambertian">
-			<albedo value="1 1 1"/>
+			<albedo value="0.8 0.8 0.8"/>
 			<albedo_texture value="../../textures/painting.jpg"/>
 		</material>
 	</model>
@@ -347,7 +347,7 @@
 		<filename value="../../meshes/picture2.obj"/>
 
 		<material type="lambertian">
-			<albedo value="1 1 1"/>
+			<albedo value="0.8 0.8 0.8"/>
 			<albedo_texture value="../../textures/painting.jpg"/>
 		</material>
 	</model>
@@ -372,7 +372,7 @@
 		<filename value="../../meshes/shelf_book1.obj"/>
 
 		<material type="lambertian">
-			<albedo value="1 1 1"/>
+			<albedo value="0.8 0.8 0.8"/>
 			<albedo_texture value="../../textures/shelfbook1.jpg"/>
 		</material>
 	</model>
@@ -381,7 +381,7 @@
 		<filename value="../../meshes/shelf_book2.obj"/>
 
 		<material type="lambertian">
-			<albedo value="1 1 1"/>
+			<albedo value="0.8 0.8 0.8"/>
 			<albedo_texture value="../../textures/shelfbook1.jpg"/>
 		</material>
 	</model>
@@ -406,7 +406,7 @@
 		<filename value="../../meshes/shelf.obj"/>
 
 		<material type="lambertian">
-			<albedo value="1 1 1"/>
+			<albedo value="0.8 0.8 0.8"/>
 		</material>
 	</model>
 

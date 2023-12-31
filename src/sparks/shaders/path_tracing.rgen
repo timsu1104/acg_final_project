@@ -67,7 +67,10 @@ void TraceRay(vec3 origin, vec3 direction) {
   hit_record = GetHitRecord(ray_payload, origin, direction);
 }
 
-float color_refraction[] = {1.510, 1.523, 1.530, 1.535, 1.550, 1.565, 1.590};
+// float color_refraction[] = {1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7};
+// vec3 color_albedo[] = {{1, 0, 0}, {1, 0.5, 0}, {1, 1, 0}, {0, 1, 0}, {0, 1, 1}, {0, 0, 1}, {0.5, 0, 0.5}};
+
+float color_refraction[] = {1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7};
 vec3 color_albedo[] = {{1, 0, 0}, {1, 0.5, 0}, {1, 1, 0}, {0, 1, 0}, {0, 1, 1}, {0, 0, 1}, {0.5, 0, 0.5}};
 
 // clang-format off
@@ -197,7 +200,7 @@ vec3 SampleRay(vec3 origin, vec3 direction) {
 
       if (material.material_type == MATERIAL_TYPE_TRANSMISSIVE) {
         uint color_index = RandomInt(7);
-        float ir = color_refraction[color_index] * 0.7;
+        float ir = color_refraction[color_index];
         float refraction_ratio = hit_record.front_face ?  (1.0 / ir) : ir;
         throughput *= albedo * color_albedo[color_index];
         if (dot(normal, direction) > 0.0) {

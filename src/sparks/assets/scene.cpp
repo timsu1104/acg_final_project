@@ -14,6 +14,13 @@ namespace sparks {
 Scene::Scene() {
   AddTexture(Texture(1, 1, glm::vec4{1.0f}, SAMPLE_TYPE_LINEAR), "Pure White");
   AddTexture(Texture(1, 1, glm::vec4{0.0f}, SAMPLE_TYPE_LINEAR), "Pure Black");
+  AddTexture(Texture(1, 1, glm::vec4{1.0f, 0.0f, 0.0f, 1.0f}, SAMPLE_TYPE_LINEAR), "Red");
+  AddTexture(Texture(1, 1, glm::vec4{1.0f, 0.5f, 0.0f, 1.0f}, SAMPLE_TYPE_LINEAR), "Orange");
+  AddTexture(Texture(1, 1, glm::vec4{1.0f, 1.0f, 0.0f, 1.0f}, SAMPLE_TYPE_LINEAR), "Yellow");
+  AddTexture(Texture(1, 1, glm::vec4{0.0f, 1.0f, 0.0f, 1.0f}, SAMPLE_TYPE_LINEAR), "Green");
+  AddTexture(Texture(1, 1, glm::vec4{0.0f, 1.0f, 1.0f, 1.0f}, SAMPLE_TYPE_LINEAR), "Cyan");
+  AddTexture(Texture(1, 1, glm::vec4{0.0f, 0.0f, 1.0f, 1.0f}, SAMPLE_TYPE_LINEAR), "Blue");
+  AddTexture(Texture(1, 1, glm::vec4{0.5f, 0.0f, 0.5f, 1.0f}, SAMPLE_TYPE_LINEAR), "Purple");
 }
 
 int Scene::AddTexture(const Texture &texture, const std::string &name) {
