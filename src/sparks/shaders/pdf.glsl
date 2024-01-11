@@ -9,6 +9,7 @@ struct CosineHemispherePdf {
 struct LightPdf {
     int index;
     float area;
+    vec3 center;
     vec3 normal_;
 };
 
@@ -20,7 +21,7 @@ struct VolumeLightPdf {
 };
 
 struct MixturePdf {
-    LightPdf light_[6];
+    LightPdf light_[7];
     VolumeLightPdf volume_[2];
     CosineHemispherePdf cosine_;
     float prob_light, prob_volume, prob_cosine;

@@ -78,3 +78,10 @@ vec3 HenyeyGreenstein(vec3 direction, float g) {
 
   return sinTheta * cos(phi) * v1 + sinTheta * sin(phi) * v2 + cosTheta * direction;
 }
+
+float HenyeyGreensteinPhase(vec3 in_dir, vec3 out_dir, float g)
+{
+    float result = 1.0 - g * g;
+    result /= (4.0 * PI * pow(1.0 + g * g - (2.0 * g) * dot(in_dir, out_dir), 1.5));
+    return result;
+}

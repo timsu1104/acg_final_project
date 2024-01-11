@@ -124,3 +124,23 @@ vec3 sample_volume(uint idx) {
   }
   return min_pos + (max_pos - min_pos) * vec3(RandomFloat(), RandomFloat(), RandomFloat());
 }
+
+vec3 GetCenter(uint idx) {
+  uint v_offset = object_infos[idx].vertex_offset;
+  uint i_offset = object_infos[idx].index_offset;
+  uint i_offset_up = idx == object_infos.length() - 1 ? indices.length() : object_infos[idx + 1].index_offset;
+  vec3 min_pos=vec3(1e9), max_pos=vec3(-1e9);
+  for (uint i = i_offset; i < i_offset_up; i += 3) {
+    uint j = i + 1, k = i + 2;
+    Vertex v0 = GetVertex(v_offset+indices[i]);
+    Vertex v1 = GetVertex(v_offset+indices[j]);
+    Vertex v2 = GetVertex(v_offset+indices[k]);
+    min_pos = min(v0.position, min_pos);
+    min_pos = min(v1.position, min_pos);
+    min_pos = min(v2.position, min_pos);
+    max_pos = max(v0.position, max_pos);
+    max_pos = max(v1.position, max_pos);
+    max_pos = max(v2.position, max_pos);
+  }
+  return (min_pos + max_pos) * 0.5;
+}

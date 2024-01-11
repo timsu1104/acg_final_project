@@ -115,15 +115,25 @@ vec3 SampleRay(vec3 origin, vec3 direction) {
   vec3 l_dir = vec3(0.0);
   const float rate = 0.9;
   const float eps = 1e-3;
+  const float min_light_dot = 0.0;
+  const float ray_marching_step = 10; 
+  const float ray_marching_maxlen = 400; 
+  const vec3 global_attenuation = vec3(0, 1.0, 1.0) * 3e-3;
+  const float g = 0.5; // Henyey Greenstein coef. 
 
   int light_num=0;
-  LightPdf light_sampler[6];
+  LightPdf light_sampler[7];
+  int main_light_idx = 0;
   for (int light_idx = 0; light_idx < materials.length(); light_idx++)
     if (materials[light_idx].material_type == MATERIAL_TYPE_EMISSION && materials[light_idx].emission_strength > 0) {
       light_sampler[light_num].index = light_idx;
       light_sampler[light_num].area = GetArea(light_idx);
+      light_sampler[light_num].center = GetCenter(light_idx);
+      if (materials[light_idx].belong_id == 100) {
+        main_light_idx = light_num;
+      }
       light_num++;
-      if (light_num == 6) break;
+      if (light_num == 7) break;
     }
 
   int volume_num=0;
@@ -157,7 +167,25 @@ vec3 SampleRay(vec3 origin, vec3 direction) {
     } else {
       Material material = materials[hit_record.hit_entity_id];
 
-      // FIXME: The covered area of the volume is purely dark. 
+      // Raymarching
+      if (b == 0) {
+        vec3 l_scatter = vec3(0.0);
+        int num_ray_samples = 0;
+        float max_length = min(length(hit_record.position - origin), ray_marching_maxlen);
+        for (num_ray_samples = 1; num_ray_samples * ray_marching_step < max_length; num_ray_samples ++) {
+          vec3 point = origin + num_ray_samples * ray_marching_step * direction;
+          int index = light_sampler[main_light_idx].index;
+          vec3 light_dir = normalize(light_sampler[main_light_idx].center - point);
+          HitRecord light_hit_record = TraceRay(point, light_dir);
+          if (light_hit_record.hit_entity_id == index && abs(light_dir.y) > min_light_dot) {
+            vec3 light_color = materials[index].emission * materials[index].emission_strength;
+            l_scatter += throughput * global_attenuation * HenyeyGreensteinPhase(direction, light_dir, g) * light_color;
+          }
+        }
+        // l_scatter /= num_ray_samples;
+        l_dir += l_scatter;
+      }
+
       if (is_in_volume || material.material_type == MATERIAL_TYPE_VOLUME) {
         if (!is_in_volume) {
           volume_material = material;
@@ -218,7 +246,9 @@ vec3 SampleRay(vec3 origin, vec3 direction) {
       }
 
       if (material.material_type == MATERIAL_TYPE_EMISSION) {
-        radiance += throughput * material.emission * material.emission_strength;
+        if (b == 0 || abs(dot(hit_record.normal, direction)) > min_light_dot) {
+          radiance += throughput * material.emission * material.emission_strength;
+        }
         break;
       }
       
@@ -249,7 +279,7 @@ vec3 SampleRay(vec3 origin, vec3 direction) {
         if (light_dir != vec3(0.0)) {
           int index = light_sampler[sel_light_idx].index;
           float light_pdf = Value_Light(light_sampler[sel_light_idx], origin, light_dir);
-          if (light_pdf > 0) {
+          if (light_pdf > 0 && abs(dot(light_sampler[sel_light_idx].normal_, light_dir)) > min_light_dot) {
             vec3 light_color = materials[index].emission * materials[index].emission_strength;
             float scatter = max(0.0, dot(normal, direction) / PI);
             l_dir += throughput * albedo * scatter * light_color / light_pdf;
